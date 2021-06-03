@@ -1,0 +1,125 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsfonts, amsmath, amsthm, amssymb}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+
+\title{NAND formulas lower bounds}
+
+\newcommand{\NN}{\mathbb{N}}%
+\newcommand{\Sbb}{\mathbb{S}}%
+\newcommand{\Cc}{\mathcal{C}}%
+\newcommand{\Gg}{\mathcal{G}}%
+\newcommand{\Ss}{\mathcal{S}}%
+\newcommand{\Ot}{\tilde{O}}%
+\newcommand{\Poly}{\textsf{P}}%
+\newcommand{\NP}{\textsf{NP}}%
+\newcommand{\bit}{\{0,1\}}%
+\DeclareMathOperator*{\poly}{poly}
+
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+% \newtheorem{problem}{Problem}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\maketitle
+
+We consider formulas with gates of fan-in 2.
+
+\section{Shallow NAND formula for every boolean function}
+
+\begin{definition}
+	The multiplexer function with parameter $n$ is
+	the function defined by:
+	\[MUX_{n}: \begin{cases}
+	\bit^{n+2^n} \rightarrow \bit \\
+	(x_1,\ldots,x_n, r_1,\ldots, r_{2^n}) \mapsto r_t, \text{ where } x_1\ldots x_n \text{ is the binary representation of } t
+	\end{cases}
+	\]
+\end{definition}
+
+\begin{lemma}\label{lemma:shallow-mux}
+	The $MUX_{n}$ function has a NAND formula of depth $n + 2\log n + O(1)$.
+\end{lemma}
+\begin{proof}
+	If the structure was unrestricted, we could simply build a binary tree of OR gates of depth $n$,
+	and put at each leaf a formula of depth $\log(n)$ which is equivalent to $f(y) \wedge x = y$,
+	where $x$ denotes the vector $x_1,\ldots,x_n$. In that case, for a given input $x$, each of these formula except at most one is equal to zero, and if there is a one, it ``flows'' up to the output gate via the OR tree.
+
+	The idea is to do something similar, except that the result has to be propagated to the root through a OR/AND tree. We can achieve this by ``activating'' some other well-chosen formulas.
+	We use a top-down approach, starting from the output OR gate. There is nothing needed to propagate the result through OR gates. For AND gate, the results comes on one wire, and there must be a 1 on the other wire.
+
+	In mathematical terms: we associate to each node of the OR/AND tree a bit string of length $\leq n$ 
+	in the following way: 
+	start with the empty string at the root, append a zero when you move to a left child, and a one when you move to a right child. Leaves have bit strings of length $n$.
+	Given a leaf with bitstring $y$, we add below it the formula 
+	$((y = x) \wedge f(y)) \vee ((y\neq= x) \wedge y fiddle x)$ TODO.
+\end{proof}
+
+\begin{corollary}\label{cor:shallow-nand}
+	Every boolean function on $n$ variables has NAND formulas of depth $n + 2\log n + O(1)$.
+\end{corollary}
+\begin{proof}
+	We can write $f(x_1,\ldots,x_n)$ as $MUX_{n}(x_1,\ldots, x_n, f(0,\ldots,0),\ldots,f(1,\ldots,1))$.
+	By interpreting each $f(b_1,\ldots,b_n)$ as a constant (i.e. has a formula of constant depth), we get the desired result.
+\end{proof}
+
+\section{Andreev's function(s) have NAND formulas of size $\Ot(n^3)$}
+
+Andreev's function with parameters $k, m$
+is the function $A_{k,m} : \bit^{\bit^k} \times (\bit^m)^k \rightarrow \bit$
+which maps a boolean function $f: {\bit^k} \rightarrow \bit$ 
+(given as a bit string of length $2^k$ representing its truth table)
+and $k$ bit strings $(X_1,\ldots, X_k)$ of length $m$
+to $f(X_{11} \oplus \ldots \oplus X_{1m}, \ldots, X_{k1} \oplus \ldots \oplus X_{km})$.
+$A_{k,m}$ can be seen as a boolean function which takes $n = 2^k + km$ inputs.
+In can be shown that $A_{k,m}$ does not have (classical De Morgan's) formulas
+of size $O(n^{3-\epsilon})$, for every $\epsilon > 0$.
+This lower bound is tight: one can easily construct De Morgan formulas of $\Ot(n^3)$ size
+for $A_{k,m}$.
+
+In what follows, we show that $A_{k,m}$ also has NAND formulas of size $\Ot(n^3)$,
+which shows that NAND formulas are rather expressive.
+
+Using a simple inductive argument, one can show that any function on $n$ variables has 
+NAND formulas of depth $2n$, but this construction is not sufficient to obtain the aforementioned 
+formulas for Andreev's function.
+Using Lemma~\ref{lemma:shallow-mux}, we can prove the following result.
+
+\begin{corollary}
+	Andreev's functions have NAND formulas of depth $3\log n + O(\log \log n)$
+	(which have size $\Ot(n^3)$, since each gate has fan-in 2).
+\end{corollary}
+\begin{proof}
+	First, notice that both $a\oplus b$ and $\neg (a\oplus b)$ have NAND formulas of depth 2.
+	Therefore, the $XOR$ of $m$ variables can be computed with tree-like NAND formula of depth $2\log m + O(1)$.
+	By plugging these formulas applied to each $X_i$ 
+	into a NAND formula of depth $k + 2\log k + O(1)$ for $f$ given by Corollary~\ref{cor:shallow-nand},
+	we get a that $A_{k,m}$ has a NAND formula of depth 
+	$2\log m + k + 2\log k + O(1) \leq  3\log n + 2\log\log n + O(1)$.
+\end{proof}
+
+
+\section{To keep in mind for later}
+It seems that function similar to $x_0 \vee (x_1 \wedge (x_2 \vee \ldots))$
+are ``hard'', i.e. they have NAND formulas of depth at least $n$ (or $\Omega(n)$ ?).
+
+\begin{itemize}
+	\item Is this true ?
+	\item Can we formalize it ?
+	\item Can we use it to find another hard function like Andreev's ?
+\end{itemize}
+
+
+\end{document}
