@@ -18,6 +18,7 @@
 \newcommand{\NP}{\textsf{NP}}%
 \newcommand{\bit}{\{0,1\}}%
 \DeclareMathOperator*{\poly}{poly}
+\DeclareMathOperator*{\polylog}{polylog}
 
 
 \theoremstyle{plain}
@@ -63,7 +64,7 @@ We consider formulas with gates of fan-in 2.
 	In mathematical terms: we associate to each node of the OR/AND tree a bit string of length $\leq n$ 
 	in the following way: 
 	start with the empty string at the root, append a zero when you move to a left child, and a one when you move to a right child. Leaves have bit strings of length $n$.
-	Given a leaf with bitstring $y$, we add below it the formula 
+	Given a leaf with bit string $y$, we add below it the formula 
 	$((y = x) \wedge f(y)) \vee ((y\neq= x) \wedge y fiddle x)$ TODO.
 \end{proof}
 
@@ -111,14 +112,57 @@ Using Lemma~\ref{lemma:shallow-mux}, we can prove the following result.
 \end{proof}
 
 
+
+\section{Speedup Lemma}
+
+\begin{lemma}\label{speedup-lemma}
+	Let $F$ be a uniform OR/AND formula on $n$ variables of depth $d= c \log n$.
+	There is an (co-)nondeterministic algorithm that decides
+	whether an input $v$ satisfies $F$ in time $n^{c/2}\polylog(n)$.
+\end{lemma}
+\begin{proof}
+	We first prove the nondeterministic case.
+	We can assume w.l.o.g. that $d$ is even, and $F$ has depth $d$ on every path. 
+
+	Given an OR/AND formula $F$ of depth $d$ a bit string $x$ of length at most $d$, let $F_{|x}$
+	be the sub-formula defined by the subtree starting at the node reached by following the path specified by $x$ from the root or $F$.
+
+	Consider the following recursive algorithm $A$, taking as input an OR/AND formula $F$ of depth $d > 0$, a bit string $x$, and the valuation $v$:
+	\begin{itemize}
+		\item 
+	if $|x| < d$
+	nondeterministically guess $b\in \bit$,
+	and return $A(F, xb0, v) \wedge A(F, xb1, v)$.
+		\item 
+	if $|x| = d$, run the the algorithm $P_F$ on $x$, and return the truth value of the corresponding literal in $v$.
+	\end{itemize}
+
+	Correctness: we show that there exists a $b\in \bit$ such $A(F, x, v)$ returns true iff and only if
+	the formula $F_{|x}(v)$ is true.
+	This is follows by definition when $|x| = d$.
+	By induction, when $|x| < d$, $A(F, xb0, v) \wedge A(F, xb1, v)$ is the value of the AND/OR sub-formula $F_{|xb}$. As $F_{|x}$ is an OR/AND formula, it is satisfiable iff at least one of $F_{|x0}$ or $F_{|x1}$ is sat, i.e. iff there exists $b\in \bit$ such that $A(F, xb0, v) \wedge A(F, xb1, v)$ is true.
+	The value of $F$ is then given by $A(F, \varepsilon, v)$, where $\varepsilon$ is the empty word.
+
+	Complexity: $A$ makes two recursive calls with the length of $x$ increased by $2$, 
+	and makes a call to $P_F$ at length $d$.
+	Therefore there are $2^{d/2} = n^{c/2}$ calls to $P_F$, and $A$ runs in time $n^{c/2}\polylog(n)$.
+	We also see here that increasing the depth of $F$ by a constant only adds a constant factor in the runtime, hence we can assume that $F$ has even depth.
+
+	For the co-nondeterministic case, we proceed similarly, except that we guess universally on the AND gates,
+	and check both sides of OR gates.
+\end{proof}
+
+\section{Lower bounds}
+
+
+
 \section{To keep in mind for later}
-It seems that function similar to $x_0 \vee (x_1 \wedge (x_2 \vee \ldots))$
+It seems that functions of the form $x_0 \vee (x_1 \wedge (x_2 \vee \ldots))$
 are ``hard'', i.e. they have NAND formulas of depth at least $n$ (or $\Omega(n)$ ?).
 
 \begin{itemize}
 	\item Is this true ?
-	\item Can we formalize it ?
-	\item Can we use it to find another hard function like Andreev's ?
+	\item Can we use it to construct a hard function like Andreev's ?
 \end{itemize}
 
 
