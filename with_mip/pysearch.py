@@ -153,3 +153,103 @@ def pretty_print(t, a, q, h, x, c, k, nl, nc, debug=False):
         # assert abs(h[i, j].x - 1) < cmp_eps
         print(s + (f'  (param {x[i].x:.5f})' if t[i].x == 1 else ''))
     print('-----------------------------')
+
+ 
+
+def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
+    """
+    Finds the best possible c for proofs of length 2k+1
+    """
+    k = 2*k+1
+    try:
+        env = gp.Env(empty=True)
+        env.setParam('OutputFlag', 0)
+        env.start()
+        m = gp.Model(env=env)
+        nl = k+1 # number of lines
+        nc = k//2+1+5 # number of columns
+        a = m.addVars(nl, nc, name='a')
+        x = m.addVars(nl, name='x') # params for speedups
+        r = m.addVars(nl, name='r') # runtime
+        t = m.addVars(nl, vtype=GRB.BINARY, name='t') # type of i-th rule
+
+        """
+        We proceed differently: we put the last quantifier of line i in a[i, -1], 
+        2nd to last in a[i, -2], etc.
+        """
+
+        # Apply the first speedup
+        m.addConstr(a[1, nc-2] >=  x[1]/2) 
+        m.addConstr(a[1, nc-2] >=  1) 
+        m.addConstr(a[1, nc-1] >=  1)
+        m.addConstr(r[1] ==  r[0] - x[1])
+        m.addConstr(t[1] == 1)
+        
+        ### Compute values of su, sd
+        # Useful tool: "Overloaded operator" : cond >> ("implies") constraint
+        # i) Speedup:
+        #   Copy previous quantifiers
+        m.addConstrs((t[i] == 1) >> (a[i, j] >= a[i-1, j+1]) for j in range(nc-1) for i in range(2, nl))
+        #   Set speedup arg "max(x/2, a)"
+        m.addConstrs((t[i] == 1) >> (a[i, nc-2] >= x[i]/2)       for i in range(2, nl)) 
+        m.addConstrs((t[i] == 1) >> (a[i, nc-1] >= a[i-1, nc-1]) for i in range(2, nl)) 
+        #   Set runtime
+        m.addConstrs((t[i] == 1) >> (r[i] == r[i-1] - x[i]) for j in range(1, nc) for i in range(2, nl)) 
+ 
+        # ii) Slowdown:
+        #   Copy l-1 quantifiers
+        m.addConstrs((t[i] == 0) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
+        #   Set runtime. We wrap this into a function.
+        def set_c_constraints(c):
+            cx = []
+            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*r[i-1])  for i in range(2, nl))
+            cx += [tmp[x] for x in tmp]
+            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*a[i-1, nc-1]) for i in range(2, nl))
+            cx += [tmp[x] for x in tmp]
+            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*a[i-1, nc-2]) for i in range(2, nl))
+            cx += [tmp[x] for x in tmp]
+            return cx
+        
+        # iii) Ensure well-formed proof
+        m.addConstrs(sum(t[j] for j in range(1, i)) >= (i)//2 for i in range(2, nl-1))
+        m.addConstr(t.sum() == k//2)
+
+        # iv) Require contradiction
+        m.addConstr(r[nl-1] <= r[0] - EPS)
+
+
+        def feasible(c):
+            c_constr = set_c_constraints(c)
+            m.optimize()
+            res = m.status == GRB.OPTIMAL
+            m.remove(c_constr)
+            return res
+
+        #### Binary search to find optimal value of c
+        best_c = 1.0
+        best_proof = ''
+        best_x = ''
+        best_r = 0
+        while c_ub - c_lb > tol:
+            mid = (c_ub + c_lb)/2
+            if feasible(mid):
+                c_lb = mid
+                if mid > best_c:
+                    best_c = mid
+                    best_proof = ''.join(map(str, (int(t[i].x) for i in range(1, nl))))
+                    best_x = [x[i].x for i in range(0, nl)]
+                    best_r = r[0].x
+                    if verbose:
+                        print(f'Value {mid} feasible')
+                        # pretty_print(t, a, q, h, x, mid, k, nl, nc, verbose)
+            else:
+                c_ub = mid
+                if verbose:
+                    print(f'Value {mid} not feasible')
+
+        return best_c, best_proof, best_x, best_r
+    except gp.GurobiError as e:
+        print('Error code ' + str(e.errno) + ': ' + str(e))
+
+    except AttributeError:
+        print('Encountered an attribute error')

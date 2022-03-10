@@ -6,7 +6,7 @@ Use MIP models to:
 import argparse
 
 from pyparams import best_param, best_param_sparse
-from pysearch import best_proof
+from pysearch import best_proof, best_proof_sparse
 
 def dyck(n):
     if n == 0:
@@ -104,4 +104,5 @@ if __name__ == '__main__':
     if args.enumerate:
         time_generated_search(args.depth, best_param_sparse, print_proof=args.verbose, verbose=args.verbose)
     else:
-        time_search(args.depth, best_proof, print_proof=args.verbose, verbose=args.verbose)
+        # time_search(args.depth, best_proof, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
+        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
