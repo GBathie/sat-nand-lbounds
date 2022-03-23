@@ -105,4 +105,4 @@ if __name__ == '__main__':
         time_generated_search(args.depth, best_param_sparse, print_proof=args.verbose, verbose=args.verbose)
     else:
         # time_search(args.depth, best_proof, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
-        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
+        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, n_threads=31, verbose=args.verbose, c_lb=2, c_ub=3)

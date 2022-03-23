@@ -14,7 +14,8 @@ def best_proof(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
     k = 2*k+1
     try:
         env = gp.Env(empty=True)
-        env.setParam('OutputFlag', 0)
+        if not verbose:
+            env.setParam('OutputFlag', 0)
         env.start()
         m = gp.Model(env=env)
         nl = k+1 # number of lines
@@ -156,16 +157,18 @@ def pretty_print(t, a, q, h, x, c, k, nl, nc, debug=False):
 
  
 
-def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
+def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=False):
     """
     Finds the best possible c for proofs of length 2k+1
     """
     k = 2*k+1
     try:
         env = gp.Env(empty=True)
-        env.setParam('OutputFlag', 0)
+        if not verbose:
+            env.setParam('OutputFlag', 0)
         env.start()
         m = gp.Model(env=env)
+        m.Params.Threads = n_threads
         nl = k+1 # number of lines
         nc = k//2+1+5 # number of columns
         a = m.addVars(nl, nc, name='a')
