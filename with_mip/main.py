@@ -5,8 +5,8 @@ Use MIP models to:
 """
 import argparse
 
-from pyparams import best_param, best_param_sparse
-from pysearch import best_proof, best_proof_sparse
+from pyparams import best_param_sparse
+from pysearch import best_proof_sparse
 
 def dyck(n):
     if n == 0:
@@ -103,12 +103,12 @@ def try_good_proof():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("depth", help="Number of 'up' steps in target proofs", type=int)
-    parser.add_argument('-v', '--verbose', help="Activate debug of search functions", action='store_true')
+    parser.add_argument('-v', '--verbose', help="Activate debug of search functions", action='count', default=0)
     parser.add_argument('-e', '--enumerate', help="Enumerate proofs instead of using MIP", action='store_true')
+    parser.add_argument('-t', '--threads', help="Number of threads to use", type=int, default=10)
     args = parser.parse_args()
 
     if args.enumerate:
-        time_generated_search(args.depth, best_param_sparse, print_proof=args.verbose, verbose=args.verbose)
+        time_generated_search(args.depth, best_param_sparse, print_proof=args.verbose > 0, verbose=args.verbose)
     else:
-        # time_search(args.depth, best_proof, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
-        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=4)
+        time_search(args.depth, best_proof_sparse, print_proof=args.verbose > 0, n_threads=args.threads, verbose=args.verbose, c_lb=2, c_ub=4)

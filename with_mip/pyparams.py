@@ -6,136 +6,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 EPS = 0.00000001
-
-def best_param(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
-    """
-    Find the best possible speedup params so that the annotation `proof`
-    leads to a contradiction
-    """
-
-    k = len(proof)
-    try:
-        env = gp.Env(empty=True)
-        env.setParam('OutputFlag', 0)
-        env.start()
-        m = gp.Model(env=env)
-        a = m.addVars(k+1, k+1, name='a') # The first row of a is unused except the first var,
-                                                  # which represents the runtime of the initial class
-        x = m.addVars(k+1, name='x') # params for speedups
-
-        """
-        Speedup rule w.p. x:
-        (Q_l n^a_l) NDEPTH[a log n] subseteq (Q_l n^max(a_l,x/2)) (Q_{l+1} n^a_l) NDEPTH[(a-x) log n]
-
-        Slowdown Rule:
-        (Q_{l-1} n^a_{l-1}) (Q_l n^a_l) NDEPTH[a log n] 
-        ((( subseteq (Q_{l-1} n^a_{l-1}) (Q_l n^a_l) TS[n^a]  )))
-            subseteq (Q_{l-1} n^a_{l-1}) NDEPTH[c.max(a, a_l, a_{l-1})] 
-        """
-
-        # Apply the first speedup
-        m.addConstr(a[1, 0] >=  x[1]/2) 
-        m.addConstr(a[1, 0] >=  1) 
-        # m.addConstr(a[1, 1] >=  x[1]/2)
-        m.addConstr(a[1, 1] >=  1)
-        m.addConstr(a[1, 2] >=  a[0,0] - x[1])
-        l = 1
-
-        # First, build the model without the constraints including `c`
-        # Annotation 1 = speedup, 0 = slowdown
-        for i in range(1, k):
-            r_type = proof[i]
-            if r_type == '0': # slowdown
-                m.addConstrs(a[i+1, j] == a[i, j] for j in range(l))
-                l -= 1
-            elif r_type == '1': # speedup
-                m.addConstrs(a[i+1, j] == a[i, j] for j in range(l))
-                m.addConstr(a[i+1, l] >= a[i, l])
-                m.addConstr(a[i+1, l] >= x[i+1]/2)
-                m.addConstr(a[i+1, l+1] >= a[i, l])
-                # m.addConstr(a[i+1, l+1] >= x[i+1]/2) # WE DO NOT NEED TO BE LARGER THAN X, THIS IS A LOGN QUANTIFIER
-                m.addConstr(a[i+1, l+2] == a[i, l+1] - x[i+1])
-                l += 1
-            else:
-                print(f'Incorrect rule type: {r_type}')
-                exit(1)
-
-        m.addConstr(a[k,0] <= a[0,0] - EPS)
-        # Binary search for best c:
-        best = 0
-        best_a = 0
-        bestp = ''
-        while c_ub - c_lb > tol:
-            mid = (c_ub + c_lb)/2
-            if is_feasible(m, proof, a, mid):
-                c_lb = mid
-                if mid > best:
-                    best = mid
-                    best_a = a[0, 0].x
-                    bestp = [x[i].x for i in range(0, k+1)]
-                    if verbose:
-                        pretty_print_sol(proof, a, x, mid)
-            else:
-                c_ub = mid
-
-        return best, proof, bestp, best_a
-    except gp.GurobiError as e:
-        print('Error code ' + str(e.errno) + ': ' + str(e))
-
-    except AttributeError:
-        print('Encountered an attribute error')
-
-
-def is_feasible(m, proof, a, c):
-    k = len(proof)
-    l = 1
-    c_constr = []
-    # Add the constraints with `c`
-    for i in range(1, k):
-        r_type = proof[i]
-        if r_type == '0': # slowdown
-            c_constr.append(m.addConstr(a[i+1, l] >= c*a[i, l+1]))
-            c_constr.append(m.addConstr(a[i+1, l] >= c*a[i, l]))
-            if l > 0:
-                c_constr.append(m.addConstr(a[i+1, l] >= c*a[i, l-1]))
-            l -= 1
-        elif r_type == '1': # speedup
-            l += 1
-
-    m.optimize()
-    res = m.status == GRB.OPTIMAL
-    m.remove(c_constr)
-
-    return res
-
-
-def pretty_print_sol(proof, a, x, c):
-    k = len(proof)
-    print('-----------------------------')
-    print(f'Found: SAT is not in Nand-depth[{c} log n]')
-    print(f'Annotation: {proof}')
-    print()
-    print(f'Nand-depth[{a[0,0].x:.5f} log n]')
-    l = 1
-    print(f'\\subseteq (E n^{a[1,0].x:.5f}) (A n^{a[1,1].x:.5f}) Nand-depth[{a[1,2].x:.5f} log n]  (param {x[1].x:.5f})')
-    for i in range(1, k):
-        r_type = proof[i]
-        if r_type == '0': # slowdown
-            l -= 1
-        elif r_type == '1': # speedup
-            l += 1
-        else:
-            print(f'Incorrect rule type: {r_type}')
-            exit(1)
-        s = '\\subseteq ' \
-            + ' '.join((f'({"E" if j%2 == 0 else "A"} n^{a[i+1,j].x:.5f})' for j in range(l+1))) \
-            + f' Nand-depth[{a[i+1,l+1].x:.5f} log n]'
-        print(s + (f'  (param {x[i+1].x:.5f})' if r_type == '1' else ''))
-    print('-----------------------------')
-
-
-
-def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
+def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=0):
     """
     Tries to find the best possible `c` between `c_lb` and `c_ub`
     using binary search.
@@ -144,7 +15,8 @@ def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
     k = len(proof)
     try:
         env = gp.Env(empty=True)
-        env.setParam('OutputFlag', 0) # disable output
+        if verbose < 2:
+            env.setParam('OutputFlag', 0) # disable output
         env.start()
         m = gp.Model(env=env)
 
@@ -187,10 +59,11 @@ def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
                 m.addConstr(a[i] == stack[-3])
                 m.addConstr(b[i] == stack[-2])
                 set_c.append(
-                    ((stack[-1], stack[-2], r[i], r[i-1]),
-                    lambda c, u, v, next_r, old_r: 
+                    ((stack[-1], stack[-2], r[i], r[i-1], x[i]),
+                    lambda c, u, v, next_r, old_r, x: 
                     [ 
-                        m.addConstr(next_r >= c*old_r),
+                        m.addConstr(next_r >= c*(old_r - x)),
+                        m.addConstr(next_r >= c*x),
                         m.addConstr(next_r >= c*u),
                         m.addConstr(next_r >= c*v)
                                 ]
@@ -232,12 +105,12 @@ def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
                     best = mid
                     best_x = [x[i].x for i in x]
                     best_r = r[0].x
-                    if verbose:
+                    if verbose > 0:
                         print(f'Value {mid} feasible')
                         pretty_print_sparse(proof, mid, x, a, b, r)
             else:
                 c_ub = mid
-                if verbose:
+                if verbose > 0:
                     print(f'Value {mid} unfeasible')
 
         return best, proof, best_x, best_r
