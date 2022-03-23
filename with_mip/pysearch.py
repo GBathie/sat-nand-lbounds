@@ -171,7 +171,9 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
         a = m.addVars(nl, nc, name='a')
         x = m.addVars(nl, name='x') # params for speedups
         r = m.addVars(nl, name='r') # runtime
-        t = m.addVars(nl, vtype=GRB.BINARY, name='t') # type of i-th rule
+        su = m.addVars(nl, vtype=GRB.BINARY, name='su') # usual speedup
+        ex = m.addVars(nl, vtype=GRB.BINARY, name='ex') # speedup followed by an exhaustive search and slowdown
+        sd  = m.addVars(nl, vtype=GRB.BINARY, name='sd')  # slowdown
 
         """
         We proceed differently: we put the last quantifier of line i in a[i, -1], 
@@ -183,40 +185,58 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
         m.addConstr(a[1, nc-2] >=  1) 
         m.addConstr(a[1, nc-1] >=  1)
         m.addConstr(r[1] ==  r[0] - x[1])
-        m.addConstr(t[1] == 1)
+        m.addConstr(su[1] == 1)
         
         ### Compute values of su, sd
         # Useful tool: "Overloaded operator" : cond >> ("implies") constraint
-        # i) Speedup:
+        # i) Usual Speedup:
         #   Copy previous quantifiers
-        m.addConstrs((t[i] == 1) >> (a[i, j] >= a[i-1, j+1]) for j in range(nc-1) for i in range(2, nl))
+        m.addConstrs((su[i] == 1) >> (a[i, j] >= a[i-1, j+1]) for j in range(nc-1) for i in range(2, nl))
         #   Set speedup arg "max(x/2, a)"
-        m.addConstrs((t[i] == 1) >> (a[i, nc-2] >= x[i]/2)       for i in range(2, nl)) 
-        m.addConstrs((t[i] == 1) >> (a[i, nc-1] >= a[i-1, nc-1]) for i in range(2, nl)) 
+        m.addConstrs((su[i] == 1) >> (a[i, nc-2] >= x[i]/2)       for i in range(2, nl)) 
+        m.addConstrs((su[i] == 1) >> (a[i, nc-1] >= a[i-1, nc-1]) for i in range(2, nl)) 
         #   Set runtime
-        m.addConstrs((t[i] == 1) >> (r[i] == r[i-1] - x[i]) for j in range(1, nc) for i in range(2, nl)) 
+        m.addConstrs((su[i] == 1) >> (r[i] == r[i-1] - x[i]) for j in range(1, nc) for i in range(2, nl)) 
  
         # ii) Slowdown:
+        # The best slowdown is always "Speedup + exhaustive search + usual slowdown"
+        #       The runtime becomes TS, hence we have to use slowdown afterwards
+        #       in order for the proof to be "well-typed".
         #   Copy l-1 quantifiers
-        m.addConstrs((t[i] == 0) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
+        m.addConstrs((sd[i] == 1) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
+        # m.addConstrs((ex[i] == 1) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
         #   Set runtime. We wrap this into a function.
         def set_c_constraints(c):
             cx = []
-            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*r[i-1])  for i in range(2, nl))
+            # Slowdown
+            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*(r[i-1] - x[i]))  for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
-            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*a[i-1, nc-1]) for i in range(2, nl))
+            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*a[i-1, nc-1]) for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
-            tmp = m.addConstrs((t[i] == 0) >> (r[i] >= c*a[i-1, nc-2]) for i in range(2, nl))
+            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*x[i]) for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
+            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*a[i-1, nc-2]) for i in range(2, nl))
+            cx += [tmp[x] for x in tmp]
+
+            # Sppedup wp x + Exhaustive search + slowdown
+            # tmp = m.addConstrs((ex[i] == 1) >> (r[i] >= c*(r[i-1] - x[i]))  for i in range(2, nl))
+            # cx += [tmp[x] for x in tmp]
+            # tmp = m.addConstrs((ex[i] == 1) >> (r[i] >= c*a[i-1, nc-1]) for i in range(2, nl))
+            # cx += [tmp[x] for x in tmp]
+            # tmp = m.addConstrs((ex[i] == 1) >> (r[i] >= c*x[i]) for i in range(2, nl))
+            # cx += [tmp[x] for x in tmp]
+            # tmp = m.addConstrs((ex[i] == 1) >> (r[i] >= c*a[i-1, nc-2]) for i in range(2, nl))
+            # cx += [tmp[x] for x in tmp]
             return cx
         
         # iii) Ensure well-formed proof
-        m.addConstrs(sum(t[j] for j in range(1, i)) >= (i)//2 for i in range(2, nl-1))
-        m.addConstr(t.sum() == k//2)
+        m.addConstrs(sum(su[j] - sd[j] for j in range(1, i)) >= 0 for i in range(2, nl-1))
+        m.addConstr(sum(su[j] - sd[j] for j in range(1, nl)) == -1)
+        #   Only one rule per line
+        m.addConstrs(su[i] + sd[i] == 1 for i in range(nl))
 
         # iv) Require contradiction
         m.addConstr(r[nl-1] <= r[0] - EPS)
-
 
         def feasible(c):
             c_constr = set_c_constraints(c)
@@ -236,7 +256,7 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=False):
                 c_lb = mid
                 if mid > best_c:
                     best_c = mid
-                    best_proof = ''.join(map(str, (int(t[i].x) for i in range(1, nl))))
+                    best_proof = ''.join(map(str, (int(su[i].x + 2*ex[i].x) for i in range(1, nl))))
                     best_x = [x[i].x for i in range(0, nl)]
                     best_r = r[0].x
                     if verbose:

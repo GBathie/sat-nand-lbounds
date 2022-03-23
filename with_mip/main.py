@@ -48,12 +48,18 @@ def run_proof(annotation, params, p0, c):
             r = r - x
             print_anno(q, r, x)
         elif annotation[i] == '0':
+            x = params[i+1]
+            r = c*max(r-x, x, q[-1], q[-2]) if len(q) > 1 else c*max(r-x, x, q[-1])
+            q.pop()
+            print_anno(q, r, x)
+        elif annotation[i] == '2':
             r = c*max(r, q[-1], q[-2]) if len(q) > 1 else c*max(r, q[-1])
             q.pop()
             print_anno(q, r)
         else:
             print('Incorrect annotation')
             exit(0)
+    print('Correct proof!' if r < p0 else 'Incorrect proof :(')
 
 
 from time import time
@@ -105,4 +111,4 @@ if __name__ == '__main__':
         time_generated_search(args.depth, best_param_sparse, print_proof=args.verbose, verbose=args.verbose)
     else:
         # time_search(args.depth, best_proof, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
-        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=3)
+        time_search(args.depth, best_proof_sparse, print_proof=args.verbose, verbose=args.verbose, c_lb=2, c_ub=4)
