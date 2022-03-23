@@ -88,15 +88,10 @@ def time_search(size, f, print_proof=False, **kwargs):
 def good_annotation(k):
     return '1'*(k-1) + '100'*k
 
-def time_functions(s, debug=False):
-    time_search(s, best_proof, debug)
-    time_generated_search(s, best_param_sparse, debug)
-    time_generated_search(s, best_param, debug)
-
 def try_good_proof():
     for s in [10,20,30,40,50]:
         t = time()
-        c,p,x,r = best_param(good_annotation(s))
+        c,p,x,r = best_param_sparse(good_annotation(s))
         t2 = time()
         print(f'Best c found: {c:.5f} in {(t2-t):.5f}s for annotation {p}')
 
