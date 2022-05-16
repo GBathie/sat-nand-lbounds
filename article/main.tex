@@ -1,0 +1,133 @@
+\documentclass[a4paper, 12pt]{article}
+% \usepackage{ae,lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[USenglish]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{todonotes}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section] % Number within sec ?
+% \newtheorem{theorem}{Theorem}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+% \newtheorem*{remark*}{Remark}
+% \theoremstyle{definition}
+% \newtheorem{problem}{Problem}
+% \newtheorem{openproblem}{Open Problem}
+
+\newcommand{\NN}{\mathbb{N}}%
+\newcommand{\ZZ}{\mathbb{Z}}%
+\newcommand{\Sbb}{\mathbb{S}}%
+\newcommand{\Cc}{\mathcal{C}}%
+\newcommand{\Gg}{\mathcal{G}}%
+\newcommand{\Ss}{\mathcal{S}}%
+\newcommand{\eps}{\varepsilon}%
+\newcommand{\epsm}{\eps^{-1}}%
+\newcommand{\bit}{\{0,1\}}%
+\DeclareMathOperator*{\poly}{poly}
+
+\newcommand{\Poly}{\textsf{P}}%
+\newcommand{\NP}{\textsf{NP}}%
+\newcommand{\SAT}{\textsf{SAT}}%
+\newcommand{\NAND}{\textsf{NAND}}%
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\title{Alternating formula lower bounds for SAT}
+\author{Gabriel Bathie, Ryan Williams}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+
+List of things to do:
+\begin{itemize}
+	\item Improve Spira/Brent to show that a $c \log n$depth 
+	lower bound implies an $n^{c-\eps}$ size lower bound?
+	\item Show that this bound is optimal w.r.t. to these rules?
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+Motivation
+
+Related work:
+- Original line of work : \cite{fortnow2000time,fortnow2005time}
+- Main line of work \cite{williams2006inductive,williams2007time,williams2013alternation} and its dramatic resolution \cite{buss2015limits}.
+- Broader classes \cite{mudigonda2020time}
+
+Main results:
+\begin{theorem}
+	For any $c < 4 \cos(\pi/7)$, \SAT does not have \NAND formulas of depth $(c + o(1)) \log n$.
+\end{theorem}
+
+\todo[inline]{Prove all the following}
+\begin{lemma}
+	For any \NAND formula on $n$ inputs of size $n^c$ and any $\eps > 0$, 
+	there exists an equivalent \NAND formula of depth $(c+\eps) \log n$.
+\end{lemma}
+
+\begin{corollary}
+	For any $c < 4 \cos(\pi/7)$, \SAT does not have \NAND formulas of \textbf{size} $n^{c + o(1)}$.
+\end{corollary}
+
+\begin{theorem} (??)
+	With our rules, we cannot do better than $4 \cos(\pi/7)$.
+\end{theorem}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Definitions}
+Notations?
+
+Uniform \NAND/alternating formulas. Specific model, comparison with the usual model.
+
+Alternating computation.
+
+Approach: proof by contradiction.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Proof of thm}
+Speedup Rule for Alternating formulas.
+
+How to get the contradiction given the slowdown rule for $c < 4\cos(\pi /7)$.
+
+\subsection{Improving Brent/Spira}
+\todo[inline]{Prove this}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Proof of optimality}
+\todo[inline]{Prove this}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{plain}
+\bibliography{biblio.bib}
+
+\end{document}
