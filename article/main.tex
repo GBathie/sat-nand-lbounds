@@ -45,6 +45,9 @@
 \newcommand{\bit}{\{0,1\}}%
 \DeclareMathOperator*{\poly}{poly}
 
+\newcommand{\Omegat}[1]{\widetilde{\Omega}\left( #1 \right)}%
+\newcommand{\Ot}[1]{\widetilde{O}\left( #1 \right)}%
+
 \newcommand{\Poly}{\textsf{P}}%
 \newcommand{\NP}{\textsf{NP}}%
 \newcommand{\SAT}{\textsf{SAT}}%
@@ -52,7 +55,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
-\title{Alternating formula lower bounds for SAT}
+\title{Uniform formula lower bounds for finding and counting satisfiable assignments}
 \author{Gabriel Bathie, Ryan Williams}
 \begin{document}
 \maketitle
@@ -63,35 +66,50 @@
 
 List of things to do:
 \begin{itemize}
-	\item Improve Spira/Brent to show that a $c \log n$depth 
+	\item Improve Spira/Brent to show that a $c \log n$ depth 
 	lower bound implies an $n^{c-\eps}$ size lower bound?
-	\item Show that this bound is optimal w.r.t. to these rules?
+	\item Show that this bound is optimal w.r.t. these rules?
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-Motivation
+Motivation: understanding complexity. Explicit lower bounds : programs, circuits, formulas.
+Uniformity.
 
 Related work:
 - Original line of work : \cite{fortnow2000time,fortnow2005time}
 - Main line of work \cite{williams2006inductive,williams2007time,williams2013alternation} and its dramatic resolution \cite{buss2015limits}.
 - Broader classes \cite{mudigonda2020time}
 
-Main results:
+Best known formula lower bounds for languages (functions?) in NP: 
+\begin{itemize}
+	\item $\Omegat{n^3}$ (for both uniform and non-uniform formulas) for Andreev's function \cite{hastad1998shrinkage}\todo{check source} in the De Morgan basis $\{\wedge, \vee, \neg\}$.
+	\item $\Omega{n^2/\log n}$ in the full binary basis (Nechiporuk)
+	\item $n^{\Theta(\log n)}$ for monotone formulas (formulas over the $\{\wedge, \vee\}$ basis).
+\end{itemize}
+
+\subsection{Results overview}
+
+We first study \NAND{} formulas. 
+The \NAND{} basis is rather expressive: Andreev's function has \NAND{} formulas of depth $(3+o(1)) \log n$ (and therefore of size $\Ot{n^3}$), which matches the lower bound for the De Morgan Basis.
+
+
 \begin{theorem}
-	For any $c < 4 \cos(\pi/7)$, \SAT does not have \NAND formulas of depth $(c + o(1)) \log n$.
+	For any $c < 4 \cos(\pi/7) \simeq 3.603$, \SAT does not have \NAND{} formulas of depth $(c + o(1)) \log n$.
 \end{theorem}
 
-\todo[inline]{Prove all the following}
+\todo[inline]{Prove all of the following.
+
+After checking \cite{sergeev2019relation}, this is probably incorrect...}
 \begin{lemma}
-	For any \NAND formula on $n$ inputs of size $n^c$ and any $\eps > 0$, 
-	there exists an equivalent \NAND formula of depth $(c+\eps) \log n$.
+	For any \NAND{} formula on $n$ inputs of size $n^c$ and any $\eps > 0$, 
+	there exists an equivalent \NAND{} formula of depth $(c+\eps) \log n$.
 \end{lemma}
 
 \begin{corollary}
-	For any $c < 4 \cos(\pi/7)$, \SAT does not have \NAND formulas of \textbf{size} $n^{c + o(1)}$.
+	For any $c < 4 \cos(\pi/7)$, \SAT does not have \NAND{} formulas of \textbf{size} $n^{c + o(1)}$.
 \end{corollary}
 
 \begin{theorem} (??)
@@ -103,10 +121,21 @@ Main results:
 \section{Definitions}
 Notations?
 
-Uniform \NAND/alternating formulas. Specific model, comparison with the usual model.
+Uniform \NAND{}/alternating formulas. Specific model, comparison with the usual model.
 
-Alternating computation.
+\subsection{Alternating computation}
 
+Given a complexity class $\Cc$ and a constant $c$, we consider \textit{quantified} complexity
+class $(Q~n^c)~\Cc$, where $Q$ is one of $\forall, \exists$ or $\oplus$.
+We define them as follows:
+\begin{definition}[Quantified classes]
+	A language $L$ is in $(Q~n^c)~\Cc$ if and only if there exists a RAM machine
+	that runs in time $n^{c + o(1)}$...
+
+	Problem with this definition: size of the input $n$ is not the same at every stage.
+\end{definition}
+
+\subsection{Overview of the methodology}
 Approach: proof by contradiction.
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -118,7 +147,12 @@ How to get the contradiction given the slowdown rule for $c < 4\cos(\pi /7)$.
 
 \subsection{Improving Brent/Spira}
 \todo[inline]{Prove this}
+Useful starting point : Size-Depth Tradeoffs for Boolean Formulae (Bonet, Buss).
 
+Remark: we must focus on the case when the input formula is a \NAND{} formula.
+Otherwise, we prove a much stronger result.
+Maybe prove the stronger result with a $2+\eps$ factor? Not very useful though.
+If we can go below 2, we improve something.
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Proof of optimality}
