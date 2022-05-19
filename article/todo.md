@@ -9,6 +9,7 @@ Goal: find super cubic size lower bounds.
 - Can we use the result for monotone formulas ? See the russian paper.
 - Can we do something to turn the depth LBs into size LBs? It looks like it needs to be SAT-specific, because of the result in the russian paper.
 
+## Balancing arbitrary fan-in formulas
 
 Interesting related: 
 http://150.140.5.98/index.php/beatcs/article/viewFile/275/257
@@ -32,3 +33,13 @@ What we can do however, is add useless alternations, and win at every layer chan
 That would yield d + 2log(s) instead of 2(d+log s), naively.
 depth alogn, size n^b => (a+ 2b) log n > 3.603 log n.
 a = 1? => b > 1.301...
+Constant depth: b > 2 cos pi/7. This is not very good... WE ALREADY KNEW IT GOD DAMMIT
+
+## Meeting with Ryan 19/05 and other ideas
+
+- What can we do for #SAT, \oplus SAT and SAT?
+- Formula size? 
+- Less restricted formulas? 
+	-> Layered formulas?
+	
+- Result with xor gates/and gates: either SAT or parity SAT requires time more than n^c

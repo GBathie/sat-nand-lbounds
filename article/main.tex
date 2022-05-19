@@ -39,6 +39,7 @@
 \newcommand{\Sbb}{\mathbb{S}}%
 \newcommand{\Cc}{\mathcal{C}}%
 \newcommand{\Gg}{\mathcal{G}}%
+\newcommand{\Ff}{\mathcal{F}}%
 \newcommand{\Ss}{\mathcal{S}}%
 \newcommand{\eps}{\varepsilon}%
 \newcommand{\epsm}{\eps^{-1}}%
@@ -50,7 +51,10 @@
 
 \newcommand{\Poly}{\textsf{P}}%
 \newcommand{\NP}{\textsf{NP}}%
+\newcommand{\NTIME}{\textsf{NTIME}}%
 \newcommand{\SAT}{\textsf{SAT}}%
+\newcommand{\ParSAT}{\ensuremath\bigoplus\textsf{SAT}}%
+\newcommand{\SharpSAT}{\#\textsf{SAT}}%
 \newcommand{\NAND}{\textsf{NAND}}%
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -142,6 +146,17 @@ Approach: proof by contradiction.
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Proof of thm}
 Speedup Rule for Alternating formulas.
+
+Slowdown Rule from algorithms for SAT assumptions:
+\begin{lemma}
+	Let $\Ff$ be a class of formulas closed under composition that can simulate projections in constant depth.
+	If $\SAT\in \Ff[c \log n]$, then $\NTIME[n] \subseteq \Ff[c \log n]$.
+\end{lemma}
+\begin{proof}
+	This follows from the fact that $\SAT$ is \NP-complete under uniform poly-log time first-order projections.
+\end{proof}
+
+Can we say the same for $\ParSAT$ and $\SharpSAT$?
 
 How to get the contradiction given the slowdown rule for $c < 4\cos(\pi /7)$.
 
