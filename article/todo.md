@@ -43,3 +43,15 @@ Constant depth: b > 2 cos pi/7. This is not very good... WE ALREADY KNEW IT GOD 
 	-> Layered formulas?
 	
 - Result with xor gates/and gates: either SAT or parity SAT requires time more than n^c
+
+## Meeting with Ryan, 26/05
+
+Todo:
+
+1. Write result for NANDs
+2. Try to parameterize the result for k layers
+3. #SAT vs full binary basis (or/and/xor/eq)
+	-> We can check tautology by only checking the MSB of #SAT. Can we confirm that? Can we generalize this to Exist?
+	-> Can we get super quadratic size lower bounds?
+4. If we look at xor/eq alt with or/and, can we allow each layer to have an arbitrary structure?
+	e.g. have ANDs and ORs in even layers. 
