@@ -35,6 +35,7 @@
 % \newtheorem{problem}{Problem}
 % \newtheorem{openproblem}{Open Problem}
 
+\newcommand{\FF}{\mathbb{F}}%
 \newcommand{\NN}{\mathbb{N}}%
 \newcommand{\ZZ}{\mathbb{Z}}%
 \newcommand{\Sbb}{\mathbb{S}}%
@@ -89,7 +90,7 @@ Lower bounds ensue. (do they though?)
 \subsection{Results overview}
 
 \begin{theorem}
-	For all $n, m$, \ssym{} circuits of size $m$ over $n$ variables can be evaluated
+	For all $n, m$, \ssym{} circuits of size $m$ over $n$ variables, with possibly negated inputs, can be evaluated
 	on every input in time $O^*(2^n + m)$.
 \end{theorem}
 
@@ -99,10 +100,6 @@ This yields a significant improvement over the exhaustive search algorithm, that
 	For any $c < 4 \cos(\pi/7)$, \SAT{} does not have \NAND{} formulas of \textbf{size} $n^{c + o(1)}$.
 \end{corollary}
 
-\begin{theorem} (??)
-	With our rules, we cannot do better than $4 \cos(\pi/7)$.
-\end{theorem}
-
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Definitions}
@@ -111,21 +108,54 @@ A symmetric function is a boolean function whose output only depends on the numb
 its input that equal to 1.
 More formally:
 \begin{definition}[Symmetric functions]
-	A boolean function $f: \bit^n \mapsto \bit$ is \textit{symmetric} if there exists a function
-	$g: \{0,\ldots, n\} \mapsto \bit$ such that for every $x\bit^n$:
-	\[f(x) = g(\sum_{i=1}^n x_i).\]
+	A boolean function $f: \bit^n \rightarrow \bit$ is \textit{symmetric} if there exists a function
+	$g: \{0,\ldots, n\} \rightarrow \bit$ such that for every $x\in\bit^n$:
+	\[f(x) = g\left(\sum_{i=1}^n x_i\right).\]
 \end{definition}
+\todo[inline]{maybe it's easier to write everything over -1,1 ?}
+
+
 
 \begin{definition}[\ssym{} circuits]
 \end{definition}
 
+For a symmetric function $f$ and its associated function $g$, we define $T(f) = g^{-1}(1)$,
+that is, the set of integers $t$ such that $f$ is one when exactly $t$ inputs of $f$ are equal to 1.
+
+Additionnally, for a gate $f$, we define $S^+(f)$ (resp. $S^-(f)$)
+to be the set of variables that are positive (resp. negative) inputs to $f$.
+
+\todo[inline]{What if a variables goes TWICE into a gate ? Doesn't matter for CNFs, but otherwise this needs to be a multiset, and we would have $X_i^{2a}$}
+
 wlog, \ssym{} circuit only contains so-called ``Exact-Majority'' gates.
+I don't even need this though.
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Proof of main result}
 
+%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Encoding \ssym{} as polys}
+\[\sum_{a = 1}^q \sum_{t = -n}^n g^{-at} \sum_{f : t\in T(f)} (\prod_{i \in S^+(f)} X_i^a) (\prod_{i \in S^-(f)} X_i^{-a})\]
 
+1. show that $P(x) = $ number of bottom layer gates equal to 1.
+
+Evaluate over $\{g, g^{-1}\}^n$ in $\FF_p$, where $q\mid p-1$.
+How to find $p,q$ so that we don't blow up the running time.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fast multipoint evaluation of these polys.}
+Since $q, t = O(n)$, we can iterate over outer loops:
+\[ P = \sum_{a = 1}^q \sum_{t = -n}^n g^{-at} P_{a,t}(X)\]
+We actually compute $2P$, can then divide by 2.
+Fix $t$, we note $P_a$ for $P_{a,t}$.
+Notation $P_{-a}$ for $P_{q-a}$ (same since $g$ has order $q$).
+
+Notice that for every $x\in \{g, g^{-1}\}^n$, we have $P_{-a}(X) = P_{a}(X^-1)$. 
+
+TODO : needs index i as well.
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{plain}
