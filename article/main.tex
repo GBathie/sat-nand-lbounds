@@ -52,6 +52,7 @@
 
 \newcommand{\Poly}{\textsf{P}}%
 \newcommand{\NP}{\textsf{NP}}%
+\newcommand{\TIME}{\textsf{TIME}}%
 \newcommand{\NTIME}{\textsf{NTIME}}%
 \newcommand{\coNTIME}{\textsf{coNTIME}}%
 \newcommand{\SAT}{\textsf{SAT}}%
@@ -59,7 +60,9 @@
 \newcommand{\SharpSAT}{\#\textsf{SAT}}%
 \newcommand{\NAND}{\textsf{NAND}}%
 \newcommand{\ND}{\textsf{NDepth}}%
-\newcommand{\NDL}[1]{\ensuremath\ND[ #1 \log n]}%
+\newcommand{\NDL}[1]{\ND[ #1 \log n]}%
+
+\newcommand{\todohere}{\todo[inline]{TODO}}%
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -185,19 +188,19 @@ A computation in a quantified complexity class is defined as follows:
 	such that, given an input $x$ of length $n$:
 	for every $i \le k$, $A_{i}$ takes as input $x_i$ along with $y_i$, 
 	a string of $n^{a_{i} + o(1)}$ nondeterministic bits,
-	runs in time $n^{a_{i} + o(1)}$ and outputs a string $x_{i+1}$ of length at most $n^{a_{i} + o(1)}$, 
-	with the convention that $x_1 := x$.
-	The output of the last stage, $x_{k+1}$, is passed to the machine $M$. 
+	runs in time $n^{a_{i} + o(1)}$ and outputs a string $x_{i}$ of length at most $n^{a_{i} + o(1)}$, 
+	with the convention that $x_0 := x$.
+	The output of the last stage, $x_{k}$, is passed to the machine $M$. 
 
 	The computation accepts $x$ \textit{starting from stage $i$} if either:
 	\begin{itemize}
-		\item $i = k+1$ and $M$ accepts $x_{k+1}$, 
+		\item $i = k+1$ and $M$ accepts $x_{k}$, 
 		\item $Q_i$ is $\exists$, and there exists a $y_i$ such that the computation
-		accepts $x_{i+1}$ starting from stage $i+1$, 
+		accepts $x_{i}$ starting from stage $i+1$, 
 		\item $Q_i$ is $\forall$, and for every $y_i$, the computation
-		accepts $x_{i+1}$ starting from stage $i+1$, 
+		accepts $x_{i}$ starting from stage $i+1$, 
 		\item $Q_i$ is $\bigoplus$, the number of $y_i$ such that the computation
-		accepts $x_{i+1}$ starting from stage $i+1$ is odd. 
+		accepts $x_{i}$ starting from stage $i+1$ is odd. 
 	\end{itemize}
 
 	An input $x$ is in $L$ if the computation $x$ accepts starting from stage 1.
@@ -215,11 +218,11 @@ First, we assume that \SAT{} has such formulas, and the strong \NP-completeness 
 allows us to deduce that the same is holds for all of $\NTIME[n]$, 
 a result referred to as the ``Slowdown rule''.
 \begin{lemma}[Slowdown rule]
-	Let $\Ff$ be an expressive\todo{define} class of formulas, and let $c > 1$.
-	If \SAT{} is in $\Ff[c \log n]$\todo{define},
-	then $\NTIME[n] \cup \coNTIME[n] \subseteq \Ff[c \log n]$.
+	% Let $\Ff$ be an expressive\todo{define} class of formulas, and let $c > 1$.
+	If \SAT{} is in $\NDL{c}$ for some $c>0$,
+	then $\NTIME[n] \cup \coNTIME[n] \subseteq \NDL{c}$.
 \end{lemma}
-\todo[inline]{talk about the issue with input size}
+\todo[inline]{That's not the rule...}
 
 We also show how to speed-up (or rather, reduce the depth of) computations by adding quantifiers, 
 using various ``Speedup rules''. 
@@ -231,19 +234,25 @@ For example, for NAND formulas (which are the same as alternating AND/OR formula
 
 We then combine multiple application of these lemmas with various parameters,
 with the goal of contradicting a known hierarchy theorem.
+Assuming that $\NTIME[n] \subseteq \NDL[c]$ for some $n$, we obtain the following hierarchy theorem
+for NAND formulas, as a corollary of the Nondeterministic Time Hierarchy Theorem:
+\begin{theorem}\label{thm:nandh}
+	If there exists $c > 0$ such that $\NTIME[n] \subseteq \NDL{c}$, 
+	then for all $b > a > 0$, we have
+	\[\NDL{a} \subsetneq \NDL{b}.\] 
+\end{theorem}
+
 For example, we can prove that SAT does not have NAND formulas 
-of depth less than $(2-\eps) \log n$ for any $\eps > 0$ with the following proof.
-Assume that $\SAT\in \textsf{NAND-depth}[c \log n]$.
+of depth less than $2.8284 \log n$ with the following proof.
+Assume that $\SAT\in \textsf{NAND-depth}[c \log n]$ for some $c > 0$.
 Then, we have
 \begin{flalign*}
-	NTIME[n^{2}]
-		&\subseteq \NDL{2c}	& \text{Slowdown rule}\\
-		&\subseteq (\exists n^{c})(\forall n^1)\NDL{0}& \text{Speedup rule with param. } x = 2c\\
-		&\subseteq (\exists n^{c})\coNTIME[n]	& \\
-		&\subseteq (\exists n^{c})\NDL{c}	& \text{Slowdown rule}\\
-		&\subseteq \NTIME[n^c]	&
+	\NDL{4}
+		&\subseteq (\exists n)(\forall n)\NDL{2}& \text{Speedup rule with param. } x = 2\\
+		&\subseteq (\exists n)\NDL{c}	& \text{Slowdown rule}\\
+		&\subseteq \NDL{c^2/2}	& \text{Slowdown rule}
 \end{flalign*}
-For $c < 2$, this contradicts the Nondeterministic Time Hierarchy Theorem.
+For $c^2/2  < 4 \leftrightarrow c < 2\sqrt{2} \simeq 2.8284\ldots$, this contradicts Theorem~\ref{thm:nandh}.
 
 In practice, we use (integer) linear programming to find the best order of application
 of the rules, and the best parameters to use.
@@ -253,9 +262,77 @@ of the rules, and the best parameters to use.
 \section{Proof of main result}
 
 \subsection{Speedup and Slowdowns}
-We start by Slowdown rule from algorithms for SAT assumptions:
+We start by discussion the Speedup rule for Alternating formulas.
+
+\begin{lemma}[Speedup rule]\label{lemma:speedup}
+	For every $d > 0$ and $0 \ge x \ge d$, we have
+	\begin{flalign*}
+	\NDL{d} &\subseteq (\exists n^{x/2}) (\forall \frac{x}{2}\log n) \NDL{d-x}\text{ and}\\
+	\NDL{d} &\subseteq (\forall n^{x/2}) (\exists \frac{x}{2}\log n) \NDL{d-x}
+	\end{flalign*}
+\end{lemma}
+
+The intuitive idea behind this lemma is that the only information needed to know that an OR gate evaluates
+to 1 is that one of its children evaluates to 1. 
+We apply this idea to every OR gate in the first $x \log n$ levels of the formula,
+and then use a universal quantifier to handle the remaining AND gates.
+
+The role of the existential quantifier is to guess for every OR gate in the first $(x/2)\log n$ levels,
+which of its children evaluates to 1, and we only evaluate the corresponding subformula.
+Moreover, making this guess reduces the number of OR gates that we will evaluate
+(this number doubles every two levels, instead of doubling at every level), 
+therefore we only need to guess $O(n^{x/2})$ bits. 
+
+We can then eliminate OR gates and replace them with their selected child.
+We are left with a formula starting with $(x/2)\log n$ levels of AND gates, 
+followed by OR/AND formulas of depth $(d-x + o(1)) \log n$.
+The main formula evaluate to 1 if and only if for every of these $O(n^{x/2})$
+smaller formulas evaluates to true: 
+we can check this using a universal quantifiers, 
+which requires $O(\frac{x}{2}\log n)$ bits, and then running an $\NDL{d-x}$ computation.
+
+Finally, notice that the definition of alternating computation
+requires that there exists a \textit{single} machine $M$ that runs the
+final stage of computation \textit{for every} possible choice of nondeterministic bits.
+This is where we use the strong notion of uniformity (from Definition~\ref{def:unif}), where the descriptor machine
+has random access to the input: giving $M$ access to (a few) bits of the input
+allows us to adapt its behavior depending on the nondeterministic bits. 
+
+\begin{proof}[Proof of Lemma~\ref{lemma:speedup}]
+	We prove the result for $\exists\forall$ computations, 
+	the result for $\forall\exists$ computations follows from the fact that $\NDL{d}$ is closed
+	under complementation.
+	
+	Let $L\in\NDL{d}$, let be $M : (x,i,n) \mapsto g$ be the a descriptor machine for $L$,
+	and let $x$ be an input of length $n$.
+	
+	We now construct a machine $M'$ that describes $\NDL{d-x}$-formulas,
+	such that an $\exists\forall$ computation with $M'$ as its last stage accepts $L$.
+	On an input $x$
+
+	We describe how to build bit strings $y$ of length $n^{x/2}$ and
+	\todohere 
+\end{proof}
+
+
+\begin{corollary}\label{cor:speedup}
+	For every $d > 0$, we have
+	\[\NDL{d} \subseteq \NTIME[n^{d/2}] \cap \coNTIME[n^{d/2}].\]
+\end{corollary}
+\begin{proof}
+	Applying Lemma~\ref{lemma:speedup} with $x = d$, we obtain
+	$\NDL{d} \subseteq (\exists n^{d/2}) (\forall \frac{d}{2}\log n) \NDL{0}$.
+	Now, using an exhaustive search over the $n^{d/2}$ bit strings of length $\frac{d}{2}\log n$
+	followed by a deterministic $n^{o(1)}$ computation,
+	we get
+	$\NDL{d} \subseteq (\exists n^{d/2}) \TIME[n^{d/2}]$.
+\end{proof}
+
+
+We now discuss
+Slowdown rule from algorithms for SAT assumptions:
 \begin{lemma}[Slowdown rule]\label{lemma:slowdown}
-	If $\SAT{}\in \NDL{c}$, then for every $d > 1$, $\NTIME[n^d] \cup \coNTIME[n^d] \subseteq \NDL{c\cdot d}$.
+	If $\SAT{}\in \NDL{c}$, then for every $d \ge 1$, $\NTIME[n^d] \cup \coNTIME[n^d] \subseteq \NDL{c\cdot d}$.
 \end{lemma}
 
 A key idea for the proof of Lemma~\ref{lemma:slowdown} 
@@ -269,8 +346,8 @@ For a more in-depth exposition of first-order projections,
 see for example~\cite[End of Sec.~3]{allender1997first}.
 \begin{proof}[Proof of Lemma~\ref{lemma:slowdown}]
 	We first prove that $\SAT{}\in \NDL{c}$ implies that $\NTIME[n] \subseteq \NDL{c}$,
-	then use a padding argument to show that $\forall d>1, \NTIME[n^d] \subseteq \NDL{cd}$,
-	and the result follows since $\NDL{cd}$ is closed under complement.
+	then use a padding argument to show that $\forall d\ge 1, \NTIME[n^d] \subseteq \NDL{c\cdot d}$,
+	and the result follows since $\NDL{c\cdot d}$ is closed under complement.
 
 	Let $L\in\NTIME[n]$. 
 	As stated above, $L$ is Karp-reducible to \SAT{} via
@@ -299,46 +376,46 @@ see for example~\cite[End of Sec.~3]{allender1997first}.
 	\end{itemize}
 	This implies $L'$ is in $\NTIME[n]$, which in turn implies that $L'\in\NDL{c}$.
 	We can then use the formula descriptor $A$ for $L'$ 
-	to describe formulas of depth $(c + o(1))\log \left(n^{d+o(1)}\right) = (cd + o(1))\log n$ for $L$.
+	to describe formulas of depth $(c + o(1))\log \left(n^{d+o(1)}\right) = (c\cdot d + o(1))\log n$ for $L$.
 	On input $x,b,n$, the descriptor machine $B$ for $L$  
 	calls $A$ on $x, b, n^d$.
 	If $A$ output a gate type or a constant, $B$ outputs the same information.
 	If $A$ outputs a literal $x_i^*$, $B$ outputs $x_i^*$ if $i \le n$, and 1 otherwise.
 \end{proof}
 
-We need to be extra careful when applying the slowdown lemma to alternating classes:
-the $i$-th computation stage takes as input a string of length $m = n^{a_i}$, not $n$.
-Since the previous result only holds for $\NTIME[n^d], d > 1$, 
+We need to be careful when applying the slowdown lemma to alternating classes:
+the $i+1$-th computation stage takes as input a string of length $m = n^{a_i}$, not $n$.
+Since the previous result only holds for $\NTIME[n^d], d \ge 1$, 
 we need to take into
-account the edge case where the running time of the $i$-th
+account the edge case where the running time of the $i+1$-th
 stage is sublinear in the size of its input.
 We have the following:
 \begin{corollary}[Extended Slowdown rule]
-	If $\SAT{}\in \NDL{c}$, then for every $k \in\NN$ and $d > 1$, we have:
+	If $\SAT{}\in \NDL{c}$, then for every $d > 1$, we have:
 	\[\ldots (Q~n^{a}) (\neg Q~n^b) \NDL{d}
-	\subseteq \ldots (Q~n^{a}) (\neg Q~n^b) \NDL{c\cdot\max(d, a, b)}.\]
+	\subseteq \ldots (Q~n^{a}) \NDL{c\cdot\max(d/2, a, b)}.\]
+	\todo{fix the $d/2$}
 \end{corollary}
 \begin{proof}
-	TODO
+	Without loss of generality, assume that $Q = \forall$, and therefore $\neg Q = \exists$.
+	In that case, we have $(\neg Q~n^b) \NDL{d} \subseteq \NTIME[n^{\max(d, b)}]$,
+	since evaluating a formula of depth $d \log n$ can be done in deterministic time
+	$n^{d + o(1)}$.
+
+	Now, consider the $\NTIME[n^{\max(d, b)}]$ language $L$ that correspond to the last stage of the alternating 
+	computation, and its corresponding nondeterministic machine $M$. 
+	It takes as input a string of length $m = n^{a}$, and its runtime, as a function of $m$, 
+	is $m^{\max(d, b)/a}$.
+	We apply the Slowdown rule to $M$. There are two possible cases:
+	\begin{itemize}
+		\item if $\max(d, b)/a < 1$, then we have $L \in \NTIME[m^{\max(d, b)/a}] \subseteq \NTIME[m]
+		\subseteq \ND[c \log m] \subseteq \NDL{c \cdot a}$.
+		Since  $\max(d, b) < a$, we have $a = \max(d, a, b)$ and therefore 
+		$\NDL{c \cdot a} = \NDL{c\cdot\max(d, a, b)}$.
+		\item otherwise, $\max(d, b) \ge a$, and applying the slowdown rule yields
+		$L \in \NTIME[m^{\max(d, b)/a}] =  \NTIME[n^{\max(d, b)}] \subseteq \NDL{c \cdot \max(d, a, b)}$.
+	\end{itemize}
 \end{proof}
-
-We now discuss
-Speedup rule for Alternating formulas.
-
-Intuitively, the only information needed to know that an OR gate evaluates
-to 1 is that one of its children evaluates to 1.
-The role of the existential quantifier is to guess for every OR gate in the first $(x/2)\log n$ levels,
-which of its children evaluates to 1, and we only evaluate the corresponding subformula.
-Moreover, making this guess reduces the number of OR gates that we will evaluate
-(this number doubles every two levels, instead of doubling every level), 
-therefore we only need to guess $n^{x/2}$ bits. 
-We can then eliminate OR gates and replace them with their selected child.
-We are left with a formula starting with $(x/2)\log n$ levels, 
-followed by an OR/AND formula of depth $(c-x + o(1)) \log n$.
-The first part can be considered as an AND gate on $n^{x/2}$ inputs (the smaller formulas).
-This formula evaluate to 1 if and only if for every of these $n^{x/2}$
-smaller formulas evaluates to true: we can check this using a universal quantifiers, 
-this requires $O(\frac{x}{2}\log n)$ bits.
 
 
 How to get the contradiction given the slowdown rule for $c < 4\cos(\pi /7)$.

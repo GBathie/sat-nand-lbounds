@@ -23,10 +23,10 @@ def enumerate_annotations(n):
 
 def print_anno(q, r, x=None):
     s = '\\subseteq ' \
-        + ' '.join(f'({"E" if i%2 == 0 else "A"} n^{q[i]:.5f})' for i in range(len(q))) \
-        + f' Nand-depth[{r} log n]'
+        + ' '.join(f'({"E" if i%2 == 0 else "A"} n^{q[i]:.3f})' for i in range(len(q))) \
+        + f' Nand-depth[{r:.3f} log n]'
     if x is not None:
-        s += f'   (param {x:.5f})'
+        s += f'   (param {x:.3f})'
     print(s)
 
 def run_proof(annotation, params, p0, c):
@@ -51,7 +51,7 @@ def run_proof(annotation, params, p0, c):
             x = params[i+1]
             r = c*max(r-x, x, q[-1], q[-2]) if len(q) > 1 else c*max(r-x, x, q[-1])
             q.pop()
-            print_anno(q, r, x)
+            print_anno(q, r, None)
         elif annotation[i] == '2':
             r = c*max(r, q[-1], q[-2]) if len(q) > 1 else c*max(r, q[-1])
             q.pop()
@@ -86,16 +86,29 @@ def time_search(size, f, print_proof=False, **kwargs):
         run_proof(best_proof, best_x, best_r, best_c)
 
 def good_annotation(k):
-    return '1'*(k-1) + '100'*k
+    if k == 0:
+        return '0'
+    return '1' + good_annotation(k-1) + '10'*k + '0'
 
 def try_good_proof():
-    for s in [10,20,30,40,50]:
+    for s in [3,5,10,15,30,50]:
         t = time()
         c,p,x,r = best_param_sparse(good_annotation(s))
         t2 = time()
         print(f'Best c found: {c:.5f} in {(t2-t):.5f}s for annotation {p}')
 
+
+def try_proof(p):
+    t = time()
+    c,p,x,r = best_param_sparse(p, verbose=1)
+    t2 = time()
+    print(f'Best c found: {c:.5f} in {(t2-t):.5f}s for annotation {p}')
+
+
 if __name__ == '__main__':
+    # try_good_proof()
+    # try_proof('11010100100')
+    # exit(0)
     parser = argparse.ArgumentParser()
     parser.add_argument("depth", help="Number of 'up' steps in target proofs", type=int)
     parser.add_argument('-v', '--verbose', help="Activate debug of search functions", action='count', default=0)

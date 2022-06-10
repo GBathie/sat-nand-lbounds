@@ -56,6 +56,7 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
         #       in order for the proof to be "well-typed".
         #   Copy l-1 quantifiers
         m.addConstrs((sd[i] == 1) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
+        # m.addConstrs((sd[i] == 1) >> (x[i] == r[i-1]/2) for i in range(2, nl)) # Best SD param is runtime/2 ?
         #   Set runtime. We wrap this into a function.
         def set_c_constraints(c):
             cx = []

@@ -47,7 +47,7 @@ Constant depth: b > 2 cos pi/7. This is not very good... WE ALREADY KNEW IT GOD 
 ## Meeting with Ryan, 26/05
 
 Todo:
-
+	
 1. Write result for NANDs
 2. Try to parameterize the result for k layers
 3. #SAT vs full binary basis (or/and/xor/eq)
@@ -55,3 +55,10 @@ Todo:
 	-> Can we get super quadratic size lower bounds?
 4. If we look at xor/eq alt with or/and, can we allow each layer to have an arbitrary structure?
 	e.g. have ANDs and ORs in even layers. 
+
+## Week 31/05
+
+Idea:
+Basic idea to build a formula for a function: f = (x_0 ^ f1) v (-x_0 ^ f0)
+What if we do the same, but use the subformula of some size with the highest number of occurrences in f instead of x_0 ?
+Issue : formula is not balanced. Hard to count # of subformulas

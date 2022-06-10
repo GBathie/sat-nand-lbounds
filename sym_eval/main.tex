@@ -1,0 +1,134 @@
+\documentclass[a4paper, 11pt]{article}
+% \usepackage{ae,lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[USenglish]{babel}
+\usepackage[margin=3cm]{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{todonotes}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section] % Number within sec ?
+% \newtheorem{theorem}{Theorem}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+% \newtheorem*{remark*}{Remark}
+% \theoremstyle{definition}
+% \newtheorem{problem}{Problem}
+% \newtheorem{openproblem}{Open Problem}
+
+\newcommand{\NN}{\mathbb{N}}%
+\newcommand{\ZZ}{\mathbb{Z}}%
+\newcommand{\Sbb}{\mathbb{S}}%
+\newcommand{\Cc}{\mathcal{C}}%
+\newcommand{\Gg}{\mathcal{G}}%
+\newcommand{\Ff}{\mathcal{F}}%
+\newcommand{\Ss}{\mathcal{S}}%
+\newcommand{\eps}{\varepsilon}%
+\newcommand{\epsm}{\eps^{-1}}%
+\newcommand{\bit}{\{0,1\}}%
+\DeclareMathOperator*{\poly}{poly}
+
+\newcommand{\Omegat}[1]{\widetilde{\Omega}\left( #1 \right)}%
+\newcommand{\Ot}[1]{\widetilde{O}\left( #1 \right)}%
+
+\newcommand{\Poly}{\textsf{P}}%
+\newcommand{\NP}{\textsf{NP}}%
+\newcommand{\TIME}{\textsf{TIME}}%
+\newcommand{\NTIME}{\textsf{NTIME}}%
+\newcommand{\coNTIME}{\textsf{coNTIME}}%
+\newcommand{\SAT}{\textsf{SAT}}%
+\newcommand{\ParSAT}{\ensuremath\bigoplus\textsf{SAT}}%
+\newcommand{\SharpSAT}{\#\textsf{SAT}}%
+\newcommand{\NAND}{\textsf{NAND}}%
+\newcommand{\ND}{\textsf{NDepth}}%
+\newcommand{\NDL}[1]{\ND[ #1 \log n]}%
+\newcommand{\ssym}{\textsf{SYM$\circ$SYM}}%
+
+\newcommand{\todohere}{\todo[inline]{TODO}}%
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\title{Fast multipoint evaluation for exponential size CNFs and SYM$\circ$SYM circuits}
+\author{Gabriel Bathie, Ryan Williams}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We introduce a new way to encode size-$m$ \ssym{} circuits with possibly negated inputs
+(which include CNFs and DNFs)
+into polynomials that can be evaluated over all inputs in $\bit^n$ in time $O^*(2^n + m)$.
+As a consequence, we obtain a $O^*(2^n)$-time algorithm that computes the
+truthe table of $2^n$-size CNFs.
+Lower bounds ensue. (do they though?)
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+\subsection{Results overview}
+
+\begin{theorem}
+	For all $n, m$, \ssym{} circuits of size $m$ over $n$ variables can be evaluated
+	on every input in time $O^*(2^n + m)$.
+\end{theorem}
+
+This yields a significant improvement over the exhaustive search algorithm, that takes time $O(2^nm)$.
+
+\begin{corollary}
+	For any $c < 4 \cos(\pi/7)$, \SAT{} does not have \NAND{} formulas of \textbf{size} $n^{c + o(1)}$.
+\end{corollary}
+
+\begin{theorem} (??)
+	With our rules, we cannot do better than $4 \cos(\pi/7)$.
+\end{theorem}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Definitions}
+
+A symmetric function is a boolean function whose output only depends on the number of 
+its input that equal to 1.
+More formally:
+\begin{definition}[Symmetric functions]
+	A boolean function $f: \bit^n \mapsto \bit$ is \textit{symmetric} if there exists a function
+	$g: \{0,\ldots, n\} \mapsto \bit$ such that for every $x\bit^n$:
+	\[f(x) = g(\sum_{i=1}^n x_i).\]
+\end{definition}
+
+\begin{definition}[\ssym{} circuits]
+\end{definition}
+
+wlog, \ssym{} circuit only contains so-called ``Exact-Majority'' gates.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Proof of main result}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{plain}
+\bibliography{biblio.bib}
+
+\end{document}
