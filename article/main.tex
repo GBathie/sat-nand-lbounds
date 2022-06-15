@@ -51,6 +51,7 @@
 \newcommand{\Ot}[1]{\widetilde{O}\left( #1 \right)}%
 
 \newcommand{\Poly}{\textsf{P}}%
+\newcommand{\Log}{\textsf{L}}%
 \newcommand{\NP}{\textsf{NP}}%
 \newcommand{\TIME}{\textsf{TIME}}%
 \newcommand{\NTIME}{\textsf{NTIME}}%
@@ -66,21 +67,13 @@
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
-\title{Uniform formula lower bounds for finding and counting satisfiable assignments}
+\title{Uniform formula lower bounds for testing the existence of and counting satisfiable assignments}
 \author{Gabriel Bathie, Ryan Williams}
 \begin{document}
 \maketitle
 
 \begin{abstract}
 \end{abstract}
-
-
-List of things to do:
-\begin{itemize}
-	\item Improve Spira/Brent to show that a $c \log n$ depth 
-	lower bound implies an $n^{c-\eps}$ size lower bound?
-	\item Show that this bound is optimal w.r.t. these rules?
-\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -89,42 +82,69 @@ List of things to do:
 Motivation: understanding complexity. Explicit lower bounds : programs, circuits, formulas.
 Uniformity.
 
-Related work:
-- Original line of work : \cite{fortnow2000time,fortnow2005time}
-- Main line of work \cite{williams2006inductive,williams2007time,williams2013alternation} and its dramatic resolution \cite{buss2015limits}.
-- Broader classes \cite{mudigonda2020time}
+A line of work initiated by Fortnow~\cite{fortnow2000time,fortnow2005time} in 1997 
+has proven model-independent time-space lower bounds for the SAT
+problem and related problems within the polynomial-time hierarchy.
+This approach was then extended by Williams~\cite{williams2006inductive,williams2007time,williams2013alternation} 
+into a complex framework which culminated in proving that \SAT{} 
+does not have a small-space algorithm that runs in time $n^{2\cos(\pi/7)} \simeq n^{1.801}$.
+This line of work concluded~\cite{buss2015limits} with a proof 
+that the $2\cos(\pi/7)$ exponent is optimal for this framework,
+which implies that radically new ideas would be required to separate \NP{} from \Log{}.
+This approach was later expanded to obtain slightly stronger lower bounds
+for quantum classes, and against small-space randomized computation~\cite{mudigonda2020time}.
 
-Best known formula lower bounds for languages (functions?) in NP: 
-\begin{itemize}
-	\item $\Omegat{n^3}$ (for both uniform and non-uniform formulas) for Andreev's function \cite{hastad1998shrinkage}\todo{check source} in the De Morgan basis $\{\wedge, \vee, \neg\}$.
-	\item $\Omega(n^2/\log n)$ in the full binary basis (Nechiporuk)
-	\item $n^{\Theta(\log n)}$ for monotone formulas (formulas over the $\{\wedge, \vee\}$ basis).
-\end{itemize}
+In this work, we explore a new extension of this line of work, 
+which gives lower bounds on the size uniform formulas that solve \SAT{}
+and related problems, such as \ParSAT{} and \SharpSAT{}.
+By giving an efficient simulation of uniform log-depth \NAND{} formulas 
+by $\Sigma_2$ computation, we are able to show that \SAT{}
+does not have \textit{uniform} \NAND{} formulas 
+of depth less than~$4 \cos(\pi/7) \log n \simeq 3.603 \log n$.
 
+TODO: We also extend this result to show that \SharpSAT{} does not have
+alternating AND-OR/XOR-EQ formulas of depth less than~$3.603 \log n$.
+\todo[inline]{does that extend to $n^c$-size lower bound for some $c > 3$?}
+
+Finding strong lower bounds on the formula size of explicit functions in \NP{}
+is a long standing open problem.
+The best lower bounds known depend on the computational basis, that is, 
+the set of gates that are allowed in the formula.
+For the full binary basis $B_2$, Nechiporuk\cite{nechiporuk66boolean}
+proved in 1966 an $\Omegat{n^2}$ lower bound for an explicit function in \NP{}, 
+which remains unbeaten to this day.
+For the De Morgan basis $\{\wedge, \vee, \neg\}$, Andreev~\cite{andreev1987method} 
+proved an $\Omegat{n^{2.5}}$ lower bound, 
+which was later improved by H{\aa}stad~\cite{hastad1998shrinkage} to $\Omegat{n^{3}}$.
+This lower bound is optimal up to polylog factors,
+since their function has (uniform) formulas of size $\Ot{n^{3}}$.
+% Another interesting case is that of mononotone formulas, i.e. formulas over the $\{\wedge, \vee\}$ basis,
+% for which Razborov, Alon and Boppana~\cite{razborov1985lower, alon1987monotone} showed
+% a superpolynomial $n^{\Theta(\log n)}$ lower bounds for the \NP-complete \textsf{Clique} problem.
+\todo{add monotone circuits lower bounds? But that's not formulas}
+
+Note that all the lower bounds mentioned in the previous paragraph 
+are \textit{size} lower bounds of the form $n^c$,
+and they hold for \textit{non-uniform} formulas.  
+The lower bounds that we give are \textit{depth} lower bounds of the form $c\log n$,
+and only hold for \textit{uniform} formulas.
+While a $n^c$ size lower bound implies a $c\log n$ depth lower bounds,
+the converse is not immediately true; 
+one may get an $n^c$ size lower bound from an
+$\alpha c\log n$ depth lower bound, where $\alpha$ depends on the computation basis,
+using the work of Brent~\cite{brent1974parallel} and Spira~\cite{spira1971time}.
+\todo{can we show something here? e.g. improve for $B_2$?}
+
+%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results overview}
 
 We first study \NAND{} formulas. 
 The \NAND{} basis is rather expressive: Andreev's function has \NAND{} formulas of depth $(3+o(1)) \log n$ (and therefore of size $\Ot{n^3}$), which matches the lower bound for the De Morgan Basis.
 
 
+Namely, we prove the following:
 \begin{theorem}
 	For any $c < 4 \cos(\pi/7) \simeq 3.603$, \SAT{} does not have \NAND{} formulas of depth $(c + o(1)) \log n$.
-\end{theorem}
-
-\todo[inline]{Prove all of the following.
-
-After checking \cite{sergeev2019relation}, this is probably incorrect...}
-\begin{lemma}
-	For any \NAND{} formula on $n$ inputs of size $n^c$ and any $\eps > 0$, 
-	there exists an equivalent \NAND{} formula of depth $(c+\eps) \log n$.
-\end{lemma}
-
-\begin{corollary}
-	For any $c < 4 \cos(\pi/7)$, \SAT{} does not have \NAND{} formulas of \textbf{size} $n^{c + o(1)}$.
-\end{corollary}
-
-\begin{theorem} (??)
-	With our rules, we cannot do better than $4 \cos(\pi/7)$.
 \end{theorem}
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -154,7 +174,8 @@ at which we wish to evaluate the formula, but is still limited to polylogarithmi
 \begin{definition}[Input-aware polylog-time uniform formulas]\todo{is this a good name?}\label{def:unif}
 	A family of formulas $(\varphi_n)_{n \ge 1}$ of depth $(c + o(1))\log n$ is \textit{polylog-time uniform}
 	if there exists a \textbf{RAM} machine $B_\varphi$
-	such that for every $n$, every $x\in\bit^n$ and every $b\in\bit^{\leq (c + o(1))\log n}$,
+	such that for every $n$, every $x\in\bit^n$ and every 
+	$b\in\bit^{\leq (c + o(1))\log n}$,
 	$B_\varphi(x, b, n)$ outputs a description of the gate at position $b$ in $\varphi_n$ in time $\log^{O(1)} n$.
 \end{definition}
 Notice that this model supersedes the previous one: 
@@ -180,7 +201,8 @@ by adding a ``parity'' quantifier.
 Given a complexity class $\Cc$ and constants $k, (a_i)_{i\leq k}$, 
 we consider \textit{quantified} complexity
 class $(Q_1~n^{a_1})\ldots(Q_k~n^{a_k})~\Cc$, 
-where $Q_i$ is one of $\forall, \exists$ or $\oplus$.
+where $Q_i$ is one of $\forall$ or $\exists$
+ % or $\oplus$.
 A computation in a quantified complexity class is defined as follows:
 \begin{definition}[Quantified computation]
 	A language $L$ is in $(Q_1~n^{a_1})\ldots(Q_k~n^{a_k})~\Cc$ 
@@ -198,9 +220,9 @@ A computation in a quantified complexity class is defined as follows:
 		\item $Q_i$ is $\exists$, and there exists a $y_i$ such that the computation
 		accepts $x_{i}$ starting from stage $i+1$, 
 		\item $Q_i$ is $\forall$, and for every $y_i$, the computation
-		accepts $x_{i}$ starting from stage $i+1$, 
-		\item $Q_i$ is $\bigoplus$, the number of $y_i$ such that the computation
-		accepts $x_{i}$ starting from stage $i+1$ is odd. 
+		accepts $x_{i}$ starting from stage $i+1$. 
+		% \item $Q_i$ is $\bigoplus$, the number of $y_i$ such that the computation
+		% accepts $x_{i}$ starting from stage $i+1$ is odd. 
 	\end{itemize}
 
 	An input $x$ is in $L$ if the computation $x$ accepts starting from stage 1.
@@ -216,26 +238,40 @@ To prove that \SAT{} does not have formulas of depth less than $c\log n$,
 we reason by contradiction.
 First, we assume that \SAT{} has such formulas, and the strong \NP-completeness of \SAT{}
 allows us to deduce that the same is holds for all of $\NTIME[n]$, 
-a result referred to as the ``Slowdown rule''.
-\begin{lemma}[Slowdown rule]
-	% Let $\Ff$ be an expressive\todo{define} class of formulas, and let $c > 1$.
+\begin{lemma}\label{lemma:usual_sd}
 	If \SAT{} is in $\NDL{c}$ for some $c>0$,
 	then $\NTIME[n] \cup \coNTIME[n] \subseteq \NDL{c}$.
 \end{lemma}
-\todo[inline]{That's not the rule...}
 
 We also show how to speed-up (or rather, reduce the depth of) computations by adding quantifiers, 
 using various ``Speedup rules''. 
 For example, for NAND formulas (which are the same as alternating AND/OR formulas), we have the following:
 \begin{lemma}[Speedup rule]
 	For every $c > 0, x \leq c$, we have:
-	\[\textsf{NAND-depth}[c \log n] \subseteq (\exists n^{x/2}) (\forall n^1) \textsf{NAND-depth}[(c-x) \log n]\]
+	\[\NDL{c} \subseteq (\exists n^{x/2}) (\forall n^1) \NDL{(c-x)}\]
 \end{lemma}
 
-We then combine multiple application of these lemmas with various parameters,
-with the goal of contradicting a known hierarchy theorem.
-Assuming that $\NTIME[n] \subseteq \NDL[c]$ for some $n$, we obtain the following hierarchy theorem
-for NAND formulas, as a corollary of the Nondeterministic Time Hierarchy Theorem:
+
+The above lemma can be combined with exhaustive search and Lemma~\ref{lemma:usual_sd} 
+to yield an improved version of Lemma~\ref{lemma:usual_sd} for quantified classes, 
+which we call the ``Slowdown rule''.
+\begin{lemma}[Slowdown rule]
+	Assume that \SAT{} is in $\NDL{c}$ for some $c>0$.
+	Then, for every $a,b,d > 0$, we have:
+	\[\ldots (Q~n^{a}) (\neg Q~n^b) \NDL{d}
+	\subseteq \ldots (Q~n^{a}) \NDL{c\cdot\max(d/2, a, b)}.\]
+	% \[\ldots (Q_{k-1}~n^{a_{k-1}}) (Q_k~n^{a_k}) \NDL{d} 
+	% \subseteq (Q_{k-1}~n^{a_{k-1}}) \NDL{c\cdot \max(d/2, a_k, a_{k-1})}\]	
+\end{lemma}
+
+
+To prove our results, 
+we combine multiple applications of these rules with suitable parameters,
+with the goal of contradicting a hierarchy theorem.
+In this work, we aim to reach a contradiction of the following hierarchy
+theorem for NAND formulas, that we obtain from the assumption that
+$\NTIME[n] \subseteq \NDL[c]$ for some $c$, 
+as a corollary of the Nondeterministic Time Hierarchy Theorem:
 \begin{theorem}\label{thm:nandh}
 	If there exists $c > 0$ such that $\NTIME[n] \subseteq \NDL{c}$, 
 	then for all $b > a > 0$, we have
@@ -252,10 +288,11 @@ Then, we have
 		&\subseteq (\exists n)\NDL{c}	& \text{Slowdown rule}\\
 		&\subseteq \NDL{c^2/2}	& \text{Slowdown rule}
 \end{flalign*}
-For $c^2/2  < 4 \leftrightarrow c < 2\sqrt{2} \simeq 2.8284\ldots$, this contradicts Theorem~\ref{thm:nandh}.
+For $c^2/2  < 4 \Leftrightarrow c < 2\sqrt{2} \simeq 2.8284\ldots$, this contradicts Theorem~\ref{thm:nandh}.
 
-In practice, we use (integer) linear programming to find the best order of application
-of the rules, and the best parameters to use.
+In practice, we use (integer) linear programming to find the
+best sequence of rules to apply, along with the optimal parameters.
+See Appendix~\ref{app:ilp} for a detailed presentation of the models that we use.
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -271,21 +308,24 @@ We start by discussion the Speedup rule for Alternating formulas.
 	\NDL{d} &\subseteq (\forall n^{x/2}) (\exists \frac{x}{2}\log n) \NDL{d-x}
 	\end{flalign*}
 \end{lemma}
+\todo[inline]{fix quantifiers?}
 
-The intuitive idea behind this lemma is that the only information needed to know that an OR gate evaluates
+The intuitive idea behind this lemma is that the only
+information needed to know that an OR gate evaluates
 to 1 is that one of its children evaluates to 1. 
-We apply this idea to every OR gate in the first $x \log n$ levels of the formula,
+We apply this idea to every OR gate in the first $x \log n$
+levels of the formula,
 and then use a universal quantifier to handle the remaining AND gates.
 
-The role of the existential quantifier is to guess for every OR gate in the first $(x/2)\log n$ levels,
+The role of the existential quantifier is to guess for every OR gate in the first $x\log n$ levels,
 which of its children evaluates to 1, and we only evaluate the corresponding subformula.
 Moreover, making this guess reduces the number of OR gates that we will evaluate
-(this number doubles every two levels, instead of doubling at every level), 
+(since the formula alternate between levels of OR and AND gates, this number doubles every two levels, instead of doubling at every level), 
 therefore we only need to guess $O(n^{x/2})$ bits. 
 
 We can then eliminate OR gates and replace them with their selected child.
 We are left with a formula starting with $(x/2)\log n$ levels of AND gates, 
-followed by OR/AND formulas of depth $(d-x + o(1)) \log n$.
+followed by smaller OR/AND formulas of depth $(d-x + o(1)) \log n$.
 The main formula evaluate to 1 if and only if for every of these $O(n^{x/2})$
 smaller formulas evaluates to true: 
 we can check this using a universal quantifiers, 
@@ -300,11 +340,11 @@ allows us to adapt its behavior depending on the nondeterministic bits.
 
 \begin{proof}[Proof of Lemma~\ref{lemma:speedup}]
 	We prove the result for $\exists\forall$ computations, 
-	the result for $\forall\exists$ computations follows from the fact that $\NDL{d}$ is closed
-	under complementation.
+	the result for $\forall\exists$ computations follows from the fact
+	that $\NDL{d}$ is closed under complementation.
 	
-	Let $L\in\NDL{d}$, let be $M : (x,i,n) \mapsto g$ be the a descriptor machine for $L$,
-	and let $x$ be an input of length $n$.
+	Let $L\in\NDL{d}$, let $M : (x,i,n) \mapsto g$ be 
+	a descriptor machine for $L$, and let $x$ be an input of length $n$.
 	
 	We now construct a machine $M'$ that describes $\NDL{d-x}$-formulas,
 	such that an $\exists\forall$ computation with $M'$ as its last stage accepts $L$.
@@ -323,13 +363,15 @@ allows us to adapt its behavior depending on the nondeterministic bits.
 	Applying Lemma~\ref{lemma:speedup} with $x = d$, we obtain
 	$\NDL{d} \subseteq (\exists n^{d/2}) (\forall \frac{d}{2}\log n) \NDL{0}$.
 	Now, using an exhaustive search over the $n^{d/2}$ bit strings of length $\frac{d}{2}\log n$
-	followed by a deterministic $n^{o(1)}$ computation,
-	we get
-	$\NDL{d} \subseteq (\exists n^{d/2}) \TIME[n^{d/2}]$.
+	followed by a deterministic $n^{o(1)}$ computation, we get that
+	$\NDL{d} \subseteq (\exists n^{d/2}) \TIME[n^{d/2}] = \NTIME[n^{d/2}]$.
+
+	The inclusion in $\coNTIME[n^{d/2}]$ follows from the stability of $\NDL{d}$
+	under complement.
 \end{proof}
 
 
-We now discuss
+We now discuss how to efficiently remove quantifiers from an alternating \ND{} computation.
 Slowdown rule from algorithms for SAT assumptions:
 \begin{lemma}[Slowdown rule]\label{lemma:slowdown}
 	If $\SAT{}\in \NDL{c}$, then for every $d \ge 1$, $\NTIME[n^d] \cup \coNTIME[n^d] \subseteq \NDL{c\cdot d}$.
@@ -386,41 +428,54 @@ see for example~\cite[End of Sec.~3]{allender1997first}.
 We need to be careful when applying the slowdown lemma to alternating classes:
 the $i+1$-th computation stage takes as input a string of length $m = n^{a_i}$, not $n$.
 Since the previous result only holds for $\NTIME[n^d], d \ge 1$, 
-we need to take into
-account the edge case where the running time of the $i+1$-th
+we need to take into account the edge case where the running time of the $i+1$-th
 stage is sublinear in the size of its input.
+
+We will now show that applying the Speedup rule once and
+using exhaustive search to remove the logarithmic-size quantifier
+yields an improved Slowdown rule for quantified classes.
 We have the following:
-\begin{corollary}[Extended Slowdown rule]
+\begin{corollary}[Extended Slowdown rule]\label{cor:extended_slowdown}
 	If $\SAT{}\in \NDL{c}$, then for every $d > 1$, we have:
 	\[\ldots (Q~n^{a}) (\neg Q~n^b) \NDL{d}
 	\subseteq \ldots (Q~n^{a}) \NDL{c\cdot\max(d/2, a, b)}.\]
-	\todo{fix the $d/2$}
 \end{corollary}
 \begin{proof}
 	Without loss of generality, assume that $Q = \forall$, and therefore $\neg Q = \exists$.
-	In that case, we have $(\neg Q~n^b) \NDL{d} \subseteq \NTIME[n^{\max(d, b)}]$,
-	since evaluating a formula of depth $d \log n$ can be done in deterministic time
-	$n^{d + o(1)}$.
+	In that case, for all $q, r > 0$, we have $(\neg Q~n^q) \NTIME[n^r] \subseteq \NTIME[n^{\max(q,r)}] $.
+	Applying Corollary~\ref{cor:speedup} on the $\NDL{d}$ part and then using the 
+	above observation leads to the following:
+	\begin{flalign*}
+	\ldots (Q~n^{a}) (\neg Q~n^b) \NDL{d} 
+	&\subseteq \ldots (Q~n^{a}) (\neg Q~n^b) \NTIME[n^{d/2}]\\	
+	&\subseteq \ldots (Q~n^{a}) \NTIME[n^{\max(d/2, d)}]	
+	\end{flalign*}
 
-	Now, consider the $\NTIME[n^{\max(d, b)}]$ language $L$ that correspond to the last stage of the alternating 
+	Now, consider the $\NTIME[n^{\max(d/2, b)}]$ language $L$
+	that correspond to the last stage of the alternating 
 	computation, and its corresponding nondeterministic machine $M$. 
 	It takes as input a string of length $m = n^{a}$, and its runtime, as a function of $m$, 
-	is $m^{\max(d, b)/a}$.
-	We apply the Slowdown rule to $M$. There are two possible cases:
+	is $m^{\max(d/2, b)/a}$.
+	We apply the Slowdown rule (Lemma~\ref{lemma:slowdown}) to $M$. There are two possible cases:
 	\begin{itemize}
-		\item if $\max(d, b)/a < 1$, then we have $L \in \NTIME[m^{\max(d, b)/a}] \subseteq \NTIME[m]
+		\item if $\max(d/2, b)/a < 1$, then we have 
+		$L \in \NTIME[m^{\max(d/2, b)/a}] \subseteq \NTIME[m]
 		\subseteq \ND[c \log m] \subseteq \NDL{c \cdot a}$.
-		Since  $\max(d, b) < a$, we have $a = \max(d, a, b)$ and therefore 
-		$\NDL{c \cdot a} = \NDL{c\cdot\max(d, a, b)}$.
-		\item otherwise, $\max(d, b) \ge a$, and applying the slowdown rule yields
-		$L \in \NTIME[m^{\max(d, b)/a}] =  \NTIME[n^{\max(d, b)}] \subseteq \NDL{c \cdot \max(d, a, b)}$.
+		Since  $\max(d/2, b) < a$, we have $a = \max(d/2, a, b)$ and therefore 
+		$\NDL{c \cdot a} = \NDL{c\cdot\max(d/2, a, b)}$.
+		\item otherwise, $\max(d/2, b) \ge a$, and applying the slowdown rule yields
+		$L \in \NTIME[m^{\max(d/2, b)/a}] =  \NTIME[n^{\max(d/2, b)}] \subseteq \NDL{c \cdot \max(d/2, a, b)}$.
 	\end{itemize}
 \end{proof}
 
 
+%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Structure of optimal proofs}
 How to get the contradiction given the slowdown rule for $c < 4\cos(\pi /7)$.
 
-\subsection{Improving Brent/Spira}
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Improving Brent/Spira}
 \todo[inline]{Prove this}
 Useful starting point : Size-Depth Tradeoffs for Boolean Formulae (Bonet, Buss).
 
@@ -428,10 +483,36 @@ Remark: we must focus on the case when the input formula is a \NAND{} formula.
 Otherwise, we prove a much stronger result.
 Maybe prove the stronger result with a $2+\eps$ factor? Not very useful though.
 If we can go below 2, we improve something.
+
+
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
-\section{Proof of optimality}
-\todo[inline]{Prove this}
+%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Program to find optimal parameters}\label{app:ilp}
+Improves over Williams (cite): no need to enumerate proof annotations.
+
+
+Therein, Williams enumerates all possible proof skeletons of length $k$,
+and tries to find to find the best set of parameters for each of them, using a linear program.
+In this work, we propose a different approach, that proves to be more efficient in practice:
+we use an Integer Linear program whose solution is
+an optimal proof of length $k$
+along with its parameters.
+
+More precisely, we give an ILP $P_{c,k}$ which is feasible if and only if
+there exists a proof annotation $p$ of length $k$\todo{it's not exactly that, it's $k$ up steps} along with parameters $x, r_0$
+such that $p$ proves a contradiction under the assumption that $\SAT\in\NDL{c}$.
+Moreover, its solution encodes $p,q,r_0$.
+By using binary search over $c$, we can quickly get an approximation 
+of the largest $c$ such that a proof of length $k$ can reach a contradiction under $H_c$\todo{define "hypothesis c"}, together with a proof for $c-\eps$.
+Repeating the above steps for increasing values of $k$ shows that the sequence $c_k^*$\todo{define ?}
+Table of $c_k^*$ for first few values of $k$?
+Seems to show convergence for some value $c^\infty > 3.6$.
+
+\todohere describe model + link to code?
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
