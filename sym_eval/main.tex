@@ -46,6 +46,8 @@
 \newcommand{\eps}{\varepsilon}%
 \newcommand{\epsm}{\eps^{-1}}%
 \newcommand{\bit}{\{0,1\}}%
+\newcommand{\mbit}{\{-1,1\}}%
+\newcommand{\gbit}{\{g^{-1},g\}}%
 \DeclareMathOperator*{\poly}{poly}
 
 \newcommand{\Omegat}[1]{\widetilde{\Omega}\left( #1 \right)}%
@@ -78,10 +80,10 @@ We introduce a new way to encode size-$m$ \ssym{} circuits with possibly negated
 (which include CNFs and DNFs)
 into polynomials that can be evaluated over all inputs in $\bit^n$ in time $O^*(2^n + m)$.
 As a consequence, we obtain a $O^*(2^n)$-time algorithm that computes the
-truthe table of $2^n$-size CNFs.
+truthe table of CNFs with $2^n$ clauses.
 Lower bounds ensue. (do they though?)
 \end{abstract}
-
+\todo[inline]{Todo: issue with weights?}
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -94,10 +96,11 @@ Lower bounds ensue. (do they though?)
 	on every input in time $O^*(2^n + m)$.
 \end{theorem}
 
-This yields a significant improvement over the exhaustive search algorithm, that takes time $O(2^nm)$.
+This yields a significant improvement over the exhaustive search algorithm, that takes time $O(2^n\cdot m)$.
 
 \begin{corollary}
-	For any $c < 4 \cos(\pi/7)$, \SAT{} does not have \NAND{} formulas of \textbf{size} $n^{c + o(1)}$.
+	CNFs (and DNFs) on $n$ variables and $m$ clauses can be evaluated
+	over all inputs in time $O^*(2^n + m)$.
 \end{corollary}
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -108,54 +111,141 @@ A symmetric function is a boolean function whose output only depends on the numb
 its input that equal to 1.
 More formally:
 \begin{definition}[Symmetric functions]
-	A boolean function $f: \bit^n \rightarrow \bit$ is \textit{symmetric} if there exists a function
-	$g: \{0,\ldots, n\} \rightarrow \bit$ such that for every $x\in\bit^n$:
-	\[f(x) = g\left(\sum_{i=1}^n x_i\right).\]
+	A boolean function $f: \mbit^n \rightarrow \mbit$ is \textit{symmetric} 
+	if there exists a function
+	$h: \{-n,\ldots, n-1, n\} \rightarrow \mbit$ such that for every $x\in\mbit^n$:
+	\[f(x) = h\left(\sum_{i=1}^n x_i\right).\]
+	The function $h$ is called the activation function of $f$.
 \end{definition}
-\todo[inline]{maybe it's easier to write everything over -1,1 ?}
-
 
 
 \begin{definition}[\ssym{} circuits]
+	A \ssym{} circuit is a depth 2 circuit where every gate computes a symmetric function.
+	Inputs to the circuit can be negated.
 \end{definition}
+Notice that we can assume w.l.o.g. that the output of the gates of the bottom layer is not negated, since the negation of a symmetric function is also a symmetric function.
 
-For a symmetric function $f$ and its associated function $g$, we define $T(f) = g^{-1}(1)$,
-that is, the set of integers $t$ such that $f$ is one when exactly $t$ inputs of $f$ are equal to 1.
+For a symmetric function $f$ and its associated function $h$, we define $T(f) = h^{-1}(1)$,
+that is, $T(f)$ is the set of integers $t$ such that $f$ is 1 when exactly $t$ of its inputs are equal to 1.
 
 Additionnally, for a gate $f$, we define $S^+(f)$ (resp. $S^-(f)$)
 to be the set of variables that are positive (resp. negative) inputs to $f$.
+Finally, let $S(f) = S^+(f) \cup S^-(f)$.
 
-\todo[inline]{What if a variables goes TWICE into a gate ? Doesn't matter for CNFs, but otherwise this needs to be a multiset, and we would have $X_i^{2a}$}
-
-wlog, \ssym{} circuit only contains so-called ``Exact-Majority'' gates.
-I don't even need this though.
+\todo[inline]{TODO: Fix. What if a variables goes TWICE into a gate ? Doesn't matter for CNFs, but otherwise this needs to be a multiset, and we would have $X_i^{2a}$}
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Proof of main result}
+Given a \ssym{} circuit $C$ and a enumeration $F$ of the gates on its second layer, we show how to construct a polynomial $P_C$ 
+whose value at $(g^{x_i})_{i =1,\ldots n}$ is equal to $\sum_{f \in F} f(x)$.
+By applying the activation function of the topmost gate of $C$ to the 
+value of $P_C$, we can recover the value of $C$.
+Here, $g$ is a well chosen element that generates a small multiplicative subgroup of $\FF_p$.
+
+We then show how to evaluate efficiently $P_C$ on all inputs of $\gbit^n$,
+from which we can compute the truth table of $C$.
 
 %%%%%%%%%%%%%%%%%%%%%%
-\subsection{Encoding \ssym{} as polys}
-\[\sum_{a = 1}^q \sum_{t = -n}^n g^{-at} \sum_{f : t\in T(f)} (\prod_{i \in S^+(f)} X_i^a) (\prod_{i \in S^-(f)} X_i^{-a})\]
+\subsection{Encoding \ssym{} as polynomials}
 
-1. show that $P(x) = $ number of bottom layer gates equal to 1.
+Let $C$ be a \ssym{} circuit, and let $F$ be an enumeration of the symmetric gates on its second layer. We encode it with the following polynomial:
 
+\[P_C(X) = -|F| + 2q^{-1}\sum_{a = 1}^q \sum_{t = -n}^n g^{-at} \sum_{f \in F : t\in T(f)} \left(\prod_{i \in S^+(f)} X_i^a\right) \left(\prod_{i \in S^-(f)} X_i^{-a}\right)\]
+
+We will evaluate $P_C$ over the finite field $\FF_p$, where $p$ is a prime number larger that $m$. 
+Moreover, $q$ is a prime number larger that $2n$ that divides $p-1$, 
+and $g$ is an element of order $q$ in $\FF_p$. 
+See Section~\ref{sec:primes} for a discussion of the existence of suitable values for $p$ and $q$.
+
+\begin{lemma}\label{lemma:symgate}
+	For any symmetric function $f$ and for any $x\in\mbit^n$, we have:
+	\[f(x) = -1 + 2q^{-1}\sum_{t \in T(f)} \sum_{a = 1}^q g^{-at} \cdot \prod_{i \in S(f)} g^{ax_i}\]
+\end{lemma}
+\begin{proof}
+	For a fixed $t$, let $P_t(x) = \sum_{a = 1}^q g^{-at} \cdot \prod_{i \in S(f)} g^{ax_i}$.
+	We show the following:
+	\[P_t(x) = \begin{cases}
+		q & \text{ if } \sum_{i=1}^n x_i = t,\\
+		0 & \text{ otherwise.}
+	\end{cases}\]
+
+	First, notice that if $\sum_{i=1}^n x_i = t$, 
+	then $g^{-at} \cdot \prod_{i \in S(f)} g^{ax_i} = g^{-at} g^{a \sum_{i=1}^n x_i} = 1$, 
+	and therefore $P_t(x) = q$.
+
+	Now, if $\sum_{i=1}^n x_i \neq t$, then $g^{-at} \cdot \prod_{i \in S(f)} g^{ax_i} = g^{ac}$ for some $c \neq 0 \mod q$.
+	Therefore, we have:
+	\begin{flalign*}
+		P_t(x) 	&= \sum_{a=1}^q g^{ac}\\
+				&= g^c\cdot(g^{qc} - 1)\cdot(g^c - 1)^{-1}\\
+				&= 0 \text{ since $g$ has order $q$.}
+	\end{flalign*}
+
+	Therefore, $\sum_{t \in T(f)} \sum_{a = 1}^q g^{-at} \cdot \prod_{i \in S(f)} g^{ax_i} = \sum_{t \in T(f)} P_t$ is equal to $q$ if $\sum_{i=1}^n x_i \in T(f)$, and 0 otherwise.
+	Multiplying by $2q^{-1}$ and substracting 1 yields the value of $f(x)$.
+\end{proof}
+
+\begin{lemma}
+	Let \[P_C(X) = -|F| + 2q^{-1}\sum_{a = 1}^q \sum_{t = -n}^n g^{-at} \sum_{f \in F : t\in T(f)} \left(\prod_{i \in S^+(f)} X_i^a\right) \left(\prod_{i \in S^-(f)} X_i^{-a}\right)\]
+	Then, for every $x\in\mbit^n$, we have:
+	\[P_C(g^{x_1}, \ldots, g^{x_n}) = \sum_{f \in F} f(x).\]
+\end{lemma}
+\begin{proof}
+	Use Lemma~\ref{lemma:symgate}, plug in $X_i = g^{x_i}$,
+	take into account the fact that some inputs may be negated, 
+	sum over $f\in F$, and reverse summation order.
+\end{proof}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Moderate-size fields with small subgroups}
 Evaluate over $\{g, g^{-1}\}^n$ in $\FF_p$, where $q\mid p-1$.
 How to find $p,q$ so that we don't blow up the running time.
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%
-\subsection{Fast multipoint evaluation of these polys.}
-Since $q, t = O(n)$, we can iterate over outer loops:
-\[ P = \sum_{a = 1}^q \sum_{t = -n}^n g^{-at} P_{a,t}(X)\]
-We actually compute $2P$, can then divide by 2.
-Fix $t$, we note $P_a$ for $P_{a,t}$.
-Notation $P_{-a}$ for $P_{q-a}$ (same since $g$ has order $q$).
+\subsection{Fast multipoint evaluation of these symmetric polynomials}
+In what follows, let $P_{a, t}$ denote the polynomial
+\[P_{a, t}(X) = g^{-at}\sum_{f \in F : t\in T(f)} \left(\prod_{i \in S^+(f)} X_i^a\right) \left(\prod_{i \in S^-(f)} X_i^{-a}\right).\]
+We use $P_{-a, t}$ to denote $P_{q-a, t}$: this is barely an abuse of notation
+since all of our computation takes place with $X\in\gbit^n$ 
+and $g$ has order $q$.
 
-Notice that for every $x\in \{g, g^{-1}\}^n$, we have $P_{-a}(X) = P_{a}(X^-1)$. 
+Notice that for every $X\in\gbit^n$, we have $P_{-a, t}(X) = g^{2at}P_{a, t}(X^-1)$,
+where $X^{-1} = (X_i^{-1}; i = 1, \ldots, n)$. 
+Therefore, for every $X\in\gbit^n$, we now rewrite $P_C$ as:
+\begin{flalign*}
+	P_C(X) 
+	&= -|F| + 2q^{-1}\sum_{t = -n}^n \sum_{a=1}^q P_{a, t}(X)\\ 
+	&= -|F| + q^{-1}\sum_{t = -n}^n \left(\sum_{a=1}^q P_{a, t}(X) + \sum_{a=0}^{q-1} P_{a, t}(X)\right)\\ 
+	&= -|F| + q^{-1}\sum_{t = -n}^n \left(\sum_{a=1}^q P_{a, t}(X) + \sum_{a=1}^{q} P_{-a, t}(X)\right)\\ 
+	&= -|F| + q^{-1}\sum_{t = -n}^n \sum_{a=1}^q P_{a, t}(X) + P_{-a, t}(X)\\
+	&= -|F| + q^{-1}\sum_{t = -n}^n \sum_{a=1}^q P_{a, t}(X) + P_{-a, t}(X)
+\end{flalign*}
+To compute $P_C$ over all inputs in $\gbit^n$, it suffices to compute the values of $P_{a, t}$ over all inputs for every $a,t$. 
+This only adds polynomial overhead since there are at most $2n+1$ values of $t$ and $q = O(n)$.
 
-TODO : needs index i as well.
+In what follows, fix a value of $t$, and let $P_a$ denote the polynomial $P_{a,t}$.
+We give a recursive algorithm to evaluate $P_a + P_{-a}$ over all inputs.
+At the $i$-th level of the recursion, we branch on the variable $X_i$.
+The polynomial $P_a$ can be decomposed as a sum as follows:
+\[P_a(X) = Q_0 + X_i^a Q_{a,+} + X_i^{-a} Q_{a,-}\]
+Similarly, for $P_{-a}$:
+\[P_{-a}(X) = Q_0 + X_i^{-a} Q_{-a,+} + X_i^{a} Q_{-a,-}\]
+Here, again, we have $Q_{-a, +}(X) = g^{2a} Q_{a, +}(X^{-1})$, 
+and $Q_{a, -}(X) = g^{-2a} Q_{-a, -}(X^{-1})$.
+Therefore, we have:
+\begin{flalign*}
+	P_a(X) 		&= Q_0(X) + X_i^a Q_{a,+}(X) + X_i^{-a} Q_{a,-}(X^{-1})\\
+	\text{and } 
+	P_{-a}(X) 	&= Q_0(X) + X_i^{-a} g^{2a} Q_{a,+}(X^{-1}) + X_i^{a} g^{2a} Q_{a,-}(X^{-1})\\
+\end{flalign*}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Evaluating weighted \ssym{} circuits}
+% One way to deal with weighted circuits might be the following:
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{plain}
