@@ -150,6 +150,15 @@ whose internal nodes, called gates, are labeled by a function $f: \bit^2 \righta
 and leaves are labeled with a variable, $x_i$ its negation $\neg x_i$ for some $i, 1\le i \le n$,
 or a constant $c\in\bit$.
 The depth of a formula is the depth of the underlying tree.
+Given an input $x \in\bit^n$, the value of $\phi$ at $x$ can be defined 
+as the value of it root on input $x$, 
+where the value of a gate is defined inductively as follows:
+\[val(g) =\begin{cases}
+	c & \text{ if $g$ is labeled with the constant} c\in\bit\\
+	x_i & \text{ if $g$ is labeled with $x_i$}\\
+	\neg x_i & \text{ if $g$ is labeled with $\neg x_i$}\\
+	f(g_1, g_2) & \text{ if $g$ is labeled  $f$, and $g_1,g_2$ are children of $g$}
+\end{cases}\]
 
 In this work, we focus on \NAND{} formulas, that is formulas whose gates are all labeled 
 with the function $\NAND: x,y \mapsto \neg(x\wedge y)$.
@@ -160,9 +169,14 @@ are OR gates, and odd-depth gates are AND gates.
 This alternative alternating point of view will be useful 
 when describing a procedure to compute the value of a formula with alternating computation.
 
-\todoh{To introduce: family of formulas computing a language}
-% In this work, we focus on formulas with depth $d(n) = (c + o(1))\log n$, for some $c > 1$.
-However, there exists formulas of \textit{constant} depth that compute undecidable languages.
+A family of formulas is a sequence $(\phi_n)_{n\in\NN}$ of formulas such that
+for every i, $\phi_i$ is a formula over $i$ inputs.
+A language $L\subseteq \bit^*$
+is computed by\footnote{In what follows, we may use ``$L$ has formulas ...'' for ``$L$ is computed by a family of formulas ...''} 
+the family of formulas $(\phi_n)_{n\in\NN}$
+if for every $n$ and every $x\in\bit^n$, $\phi_n(x) = 1 \Leftrightarrow x\in L$.
+
+However, there exists families formulas of \textit{constant} depth that compute undecidable languages.
 In this work, we restrict our attention to uniform formulas, 
 that is family of formulas for which the description of the
 $n$-input formula can be computed efficiently.
@@ -832,6 +846,10 @@ seems to converge to some value $c_\infty^* > 3.5$ (see Table~\ref{table:ilp_res
 \end{table}
 
 \subsection{Details of the model}
+Given an integer $k$ and a real $c$, we define the following interger linear program $P_{c,k}$ as follows:
+\begin{equation}
+	todo
+\end{equation}
 \todoh{describe model}
 \todoh{link to code?}
 
