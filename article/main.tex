@@ -11,13 +11,10 @@
 \usepackage{amssymb}
 \usepackage{todonotes}
 \usepackage{enumitem}
-% \usepackage{algorithm}
-% \usepackage[noend]{algpseudocode}
 
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section] % Number within sec ?
-% \newtheorem{theorem}{Theorem}
 \newtheorem{prop}[theorem]{Proposition}
 \newtheorem{property}[theorem]{Property}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -31,10 +28,6 @@
 \newtheorem{example}[theorem]{Example}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
-% \newtheorem*{remark*}{Remark}
-% \theoremstyle{definition}
-% \newtheorem{problem}{Problem}
-% \newtheorem{openproblem}{Open Problem}
 
 \newcommand{\NN}{\mathbb{N}}%
 \newcommand{\ZZ}{\mathbb{Z}}%
@@ -65,8 +58,6 @@
 \newcommand{\NDL}[1]{\ND\left[ #1 \log n\right]}%
 \newcommand{\TS}[1]{\textsf{TS}\left[ n^{ #1 }\right]}%
 
-\newcommand{\todohere}{\todo[inline]{TODO}}%
-\newcommand{\todoh}[1]{\todo[inline]{TODO: #1 }}%
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -82,12 +73,18 @@
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-\todoh{Motivation: understanding complexity. Explicit lower bounds: programs, circuits, formulas.
-Uniformity.}
+As a first step to understand the relations between different complexity classes,
+an important problem in complexity theory is to find
+lower bounds lower bounds for explicit problems in various model: programs, circuits, or formulas.
+
+A particular attention was dedicated to the \SAT{} problem, 
+since a super-polynomial lower bound for this problem would imply $\NP \neq \P$
+(for programs, $\NP \neq \textsf{P/poly}$ for circuits).
 
 A line of work initiated by Fortnow~\cite{fortnow2000time,fortnow2005time} in 1997 
-has proven model-independent time-space lower bounds for the SAT
-problem and related problems within the polynomial-time hierarchy.
+has proven model-independent time-space lower bounds
+(or equivalently, lower bounds against small-space algorithms) for \SAT{}
+and related problems within the polynomial-time hierarchy.
 This approach was then extended by Williams~\cite{williams2006inductive,williams2007time,williams2013alternation} 
 into a complex framework which culminated in proving that \SAT{} 
 does not have a small-space algorithm that runs in time $n^{2\cos(\pi/7)}  \simeq n^{1.801}$.
@@ -108,14 +105,14 @@ Finding strong lower bounds on the formula size of explicit functions in \NP{}
 is a long-standing open problem.
 The best lower bounds known depend on the computational basis, that is, 
 the set of gates that are allowed in the formula.
-For the full binary basis $B_2$, Nechiporuk\cite{nechiporuk66boolean}
+For the full binary basis $B_2$, Nechiporuk~\cite{nechiporuk66boolean}
 proved in 1966 an $\Omegat{n^2}$ lower bound for an explicit function in \NP{}, 
 which remains unbeaten to this day.
 For the De Morgan basis $\{\wedge, \vee, \neg\}$, Andreev~\cite{andreev1987method} 
-proved an $\Omegat{n^{2.5}}$ lower bound, 
+proved an~$\Omegat{n^{2.5}}$ lower bound, 
 which was later improved by H{\aa}stad~\cite{hastad1998shrinkage} to $\Omegat{n^{3}}$.
 This lower bound is optimal up to polylog factors,
-since their function has (uniform) formulas of size $\Ot{n^{3}}$.
+since this function has (uniform) formulas of size $\Ot{n^{3}}$.
 
 Note that all the lower bounds mentioned in the previous paragraph 
 are \textit{size} lower bounds of the form $n^{c + o(1)}$
@@ -129,16 +126,24 @@ $\alpha c\log n$ depth lower bound, where $\alpha$ depends on the computation ba
 using the work of Brent~\cite{brent1974parallel} and Spira~\cite{spira1971time}.
 
 %%%%%%%%%%%%%%%%%%%%%%
-\subsection{Results overview}
+\paragraph{Results overview}
 
-The \NAND{} basis is rather expressive: Andreev's function has \NAND{} formulas of depth $(3+o(1)) \log n$ (and therefore of size $\Ot{n^3}$), which matches the lower bound for the De Morgan Basis.
-\todoh{more about nand?}
+In this work, we focus in the \NAND{} basis, 
+that is formulas where every gate computes the function $\NAND: x,y\mapsto \neg(x\wedge y)$;
+there are no internal, only inputs can be negated.
+The \NAND{} basis is universal (i.e. can compute any boolean function), 
+and is rather expressive: Andreev's function has \NAND{} formulas of depth~$(3+o(1)) \log n$
+(and therefore of size $\Ot{n^3}$), which matches the lower bound for the De Morgan Basis.
 
-Namely, we prove the following:
+Our main result is the following:
 \begin{theorem}\label{thm:main}
 	For any $c < 4 \cos(\pi/7) \simeq 3.603$, \SAT{} does not have 
 	uniform \NAND{} formulas of depth $(c + o(1)) \log n$.
 \end{theorem}
+
+It is based on a novel algorithm that computes the 
+value of a \NAND{} formula in $\Sigma_2$ sublinear time.
+Our algorithm uses the equivalence between \NAND{} formulas and alternating OR/AND formulas.
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -148,7 +153,7 @@ Namely, we prove the following:
 A boolean formula $\phi$ over $n$ inputs is a 
 rooted full binary tree\footnote{\textit{Full} means that every node has either two or zero children.}
 whose internal nodes, called gates, are labeled by a function $f: \bit^2 \rightarrow \bit$,
-and leaves are labeled with a variable, $x_i$ its negation $\neg x_i$ for some $i, 1\le i \le n$,
+and leaves are labeled with a variable~$x_i$, its negation $\neg x_i$ for some $i, 1\le i \le n$,
 or a constant $c\in\bit$.
 The depth of a formula is the depth of the underlying tree.
 Given an input $x \in\bit^n$, the value of $\phi$ at $x$ can be defined 
@@ -174,7 +179,7 @@ A family of formulas is a sequence $(\phi_n)_{n\in\NN}$ of formulas such that
 for every i, $\phi_i$ is a formula over $i$ inputs.
 A language $L\subseteq \bit^*$
 is computed by\footnote{In what follows, we may use ``$L$ has formulas ...'' for ``$L$ is computed by a family of formulas ...''} 
-the family of formulas $(\phi_n)_{n\in\NN}$
+the family of formulas~$(\phi_n)_{n\in\NN}$
 if for every $n$ and every $x\in\bit^n$, $\phi_n(x) = 1 \Leftrightarrow x\in L$.
 
 However, there exists families formulas of \textit{constant} depth that compute undecidable languages.
@@ -340,59 +345,61 @@ We start by discussing the Speedup rule for Alternating formulas.
 	\NDL{d} &\subseteq (\forall n^{x/2}) (\exists n) \NDL{d-x}
 	\end{flalign*}
 \end{lemma}
+\begin{proof}
+	The intuitive idea behind this lemma is that the only
+	information needed to know that an OR gate evaluates
+	to 1 is that one of its children evaluates to 1. 
+	We apply this idea to every OR gate in the first $x \log n$
+	levels of the formula,
+	and then use a universal quantifier to handle the remaining AND gates.
 
-The intuitive idea behind this lemma is that the only
-information needed to know that an OR gate evaluates
-to 1 is that one of its children evaluates to 1. 
-We apply this idea to every OR gate in the first $x \log n$
-levels of the formula,
-and then use a universal quantifier to handle the remaining AND gates.
+	The role of the existential quantifier is to guess for every OR gate in the first $x\log n$ levels,
+	which of its children evaluates to 1, and we only evaluate the corresponding subformula.
+	Moreover, making this guess reduces the number of OR gates that we will evaluate
+	(since the formula alternate between levels of OR and AND gates, this number doubles every two levels,
+	instead of doubling at every level), 
+	therefore we only need to guess $O(n^{x/2})$ bits. 
+	Let $y$ be the corresponding bitstring.
 
-The role of the existential quantifier is to guess for every OR gate in the first $x\log n$ levels,
-which of its children evaluates to 1, and we only evaluate the corresponding subformula.
-Moreover, making this guess reduces the number of OR gates that we will evaluate
-(since the formula alternate between levels of OR and AND gates, this number doubles every two levels,
-instead of doubling at every level), 
-therefore we only need to guess $O(n^{x/2})$ bits. 
+	We can then eliminate OR gates and replace them with their selected child.
+	We are left with a formula starting with $(x/2)\log n$ levels of AND gates, 
+	followed by smaller OR/AND formulas of depth $(d-x + o(1)) \log n$.
+	The main formula evaluates to 1 if and only if for every of these $O(n^{x/2})$
+	smaller formulas evaluates to true: 
+	we can check this using a universal quantifier, 
+	which requires $O(\frac{x}{2}\log n)$ bits, and then running an $\NDL{d-x}$ computation.
+	Note that while the second quantifier only requires $O(\frac{x}{2}\log n)$ nondeterministic bits,
+	it still computes and outputs $n + x\log n$ bits 
+	(the output along with 1 bit for each of the first $x\log n$ levels), hence the $n^1$ exponent. 
+	Let $z$ be the corresponding bitstring.
 
-We can then eliminate OR gates and replace them with their selected child.
-We are left with a formula starting with $(x/2)\log n$ levels of AND gates, 
-followed by smaller OR/AND formulas of depth $(d-x + o(1)) \log n$.
-The main formula evaluates to 1 if and only if for every of these $O(n^{x/2})$
-smaller formulas evaluates to true: 
-we can check this using a universal quantifier, 
-which requires $O(\frac{x}{2}\log n)$ bits, and then running an $\NDL{d-x}$ computation.
-Note that while the second quantifier only requires $O(\frac{x}{2}\log n)$ nondeterministic bits,
-it still computes and outputs $n^{1+o(1)}$ bits, hence the $n^1$ exponent. 
+	Finally, notice that the definition of alternating computation
+	requires that there exists a \textit{single} machine $M$ that runs the
+	final stage of computation \textit{for every} possible choice of nondeterministic bits.
+	This is where we use the strong notion of uniformity (from Definition~\ref{def:unif}), where the descriptor machine
+	has random access to the input: giving $M$ access to (a few) bits of the input
+	allows us to adapt its behavior depending on the nondeterministic bits.
 
-Finally, notice that the definition of alternating computation
-requires that there exists a \textit{single} machine $M$ that runs the
-final stage of computation \textit{for every} possible choice of nondeterministic bits.
-This is where we use the strong notion of uniformity (from Definition~\ref{def:unif}), where the descriptor machine
-has random access to the input: giving $M$ access to (a few) bits of the input
-allows us to adapt its behavior depending on the nondeterministic bits. 
+	Consider the machine $M'$ that,
+	on input $a'$ of length $n' = n + x\log n$ for some $n$,
+	let $a' = ab$, where $a$ has length $n$ and $b$ has length $x\log n$,
+	and $M'$ returns $M'(a', i, n') = M(a, bi, n)$.
+	By construction, $M'$ describes $\NDL{d-x}$-formulas.
+	Moreover, if the original formula was true on $x$, 
+	then there exists a choice of $y$ such that for all $z$,
+	the formula described by $M'$ is true on input $xb(y,z)$,
+	where $b(y,z)$ is the bitstring that describes a path 
+	encoded by $y$ restricted to the choices of $z$.
+	This is an $\exists\forall$ computation with $M'$ as its last stage that accepts $L$.
 
-\begin{proof}[Proof of Lemma~\ref{lemma:speedup}]
-	We prove the result for $\exists\forall$ computations, 
-	the result for $\forall\exists$ computations follows from the fact
-	that $\NDL{d}$ is closed under taking the complement.
-	
-	Let $L\in\NDL{d}$, let $M : (x,i,n) \mapsto g$ be 
-	a descriptor machine for $L$, and let $x$ be an input of length $n$.
-	
-	We now construct a machine $M'$ that describes $\NDL{d-x}$-formulas,
-	such that an $\exists\forall$ computation with $M'$ as its last stage accepts $L$.
-	On an input $x$
-
-	We describe how to build bit strings $y$ of length $n^{x/2}$ and
-	\todoh{finish details of proof}
+	The result for $\forall\exists$ follows since $\NDL{d}$ is closed under complement.
 \end{proof}
 
 Lemma~\ref{lemma:speedup} yields the following corollary,
 which gives us a simulation of formulas by Turing machines that is more efficient
 than the naive evaluation.
 \begin{corollary}\label{cor:speedup}
-	For every $d > 0$, we have
+	For every $d \ge 1$, we have
 	\[\NDL{d} \subseteq \NTIME[n^{d/2}] \cap \coNTIME[n^{d/2}].\]
 \end{corollary}
 \begin{proof}
@@ -517,12 +524,35 @@ We have the following:
 We now prove the Conditional Depth hierarchy theorem, 
 stated without proof in Section~\ref{sec:overview}.
 \begin{theorem}
-	If there exists $c > 0$ such that $\SAT \subseteq \NDL{c}$, 
+	If there exists $c > 0$ such that $\NTIME[n] \subseteq \NDL{c}$, 
 	then for all $b > a > 0$, we have
 	\[\NDL{a} \subsetneq \NDL{b}.\] 
 \end{theorem}
 \begin{proof}
-	
+	We give a proof by contradiction. Assume that there exists $0 < a < b$
+	such that $\NDL{b} \subseteq \NDL{a}$. 
+	A standard amplification by padding argument shows that this implies
+	$\NDL{d} \subseteq \NDL{a}$ for \textit{any} $d$.
+	More precisely, we show that $\NDL{r\cdot a} \subseteq \NDL{a}$
+	implies  $\NDL{r^2\cdot a}\subseteq \NDL{r\cdot a} \subseteq \NDL{a}$ for any $r > 1$.
+	Taking $r = b/a > 1$ and applying this result $t = \log_2\log_r d/a$ times, we get.
+	$\NDL{r^{2^t}} = \NDL{d} \subseteq \NDL{a}$.
+
+	Now, assuming that there exists $c \ge 1/2$ such that $\NTIME[n] \subseteq \NDL{c}$,
+	we have:
+	\begin{flalign*}
+		\NTIME[2a] 
+			&\subseteq \NDL{2ca}\\
+			&\subseteq \NDL{a}\\
+			&\subseteq \NTIME[a]
+	\end{flalign*}
+	The first inclusion follows from a padding argument, 
+	the second one follows from the amplification argument above as $2c > 1$,
+	the last inclusion uses efficient simulation of $\ND$ by RAMs.
+	The proof for $c < 1/2$ is similar, except that the second inclusion follows
+	from $2c < 1$.
+	But this proves $\NTIME[2a] \subseteq \NTIME[a]$ for some $a > 0$,
+	which contradicts the Nondeterministic Time Hierarchy Theorem.
 \end{proof}
 
 Note that this theorem relies heavily on the assumption that $\SAT\in\NDL{c}$,
@@ -531,12 +561,25 @@ It is an open problem to give an unconditional depth hierarchy theorem that
 separates $\NDL{a}$ from $\NDL{b}$ for any $a < b$.
 
 %%%%%%%%%%%%%%%%%%%%%%
-\subsection{Structure of optimal proofs}
+\subsection{Structure of asymptotically optimal proofs}
 In this section, we describe
-the process that helps us build a proof, formed of successive applications
-of the speedup and slowdown rules, 
+the process that helps us build an quantifier-trading proof, 
+formed of successive applications
+of the speedup and slowdown rules along with their parameters, 
 that reaches a contradiction from the assumption
 $\SAT\in\NDL{c}$ for some $c < 4\cos(\pi /7)$.
+While these proofs might not be the shortest that yield a contradiction
+for a given $c$, they present a very simple inductive structure that makes them easier to analyze.
+
+We introduce here the \textit{proof annotation} notation of Williams~\cite{mudigonda2020time},
+which succinctly describes a quantifier-trading proof: 
+let $1_x$ denote an application of the speedup rule with parameter $x$, 
+and let $0$ denote an application of the slowdown rule.
+The proof annotation of a quantifier-trading proof is the string corresponding
+to the concatenation of the representation of each of its steps.
+For example, the proof annotation corresponding to 
+the short quantifier-trading proof presented in Section~\ref{sec:overview}
+is $1_200$.
 
 \begin{observation}
 	Consider a quantifier trading proof starting from $\ldots (Q_k~n^{a_k})\NDL{d}$
@@ -625,7 +668,7 @@ where $\phi$ denotes the golden ratio.
 Eq.~\ref{eq:cstr_ak} leads us to the following definition.
 \begin{definition}
 	Let $c > 2\phi$.
-	A sequence of real number $(a_k)_{k=0,\ldots,t}$ is \textit{well-behaved for $c$}\todo{find a name for that}
+	A sequence of real number $(a_k)_{k=0,\ldots,t}$ is \textit{well-behaved for $c$}
 	if the following holds:
 	\begin{enumerate}
 		\item for every $k=0,\ldots,t, a_k \ge 1$,
@@ -757,16 +800,29 @@ Lemma~\ref{lemma:construction} proves Theorem~\ref{thm:main} for $c \in]2\phi, 4
 to extend this result to $c \le 2\phi$, it suffices to notice that in that case,
 we have $\NDL{c} \subseteq \NDL{(2\phi + \eps)}$, hence it reduces to the former case.
 
-%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%
-\section{Can we turn depth lower bounds into (good) size lower bounds?}
-Can we prove an improved Brent/Spira-type theorem that turns our lower bounds into super-cubic size lower bounds?
-Useful starting point: Size-Depth Tradeoffs for Boolean Formulae (Bonet, Buss).
 
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion and future work}
+As mentioned in the introduction, the lower bounds 
+proved in this work are \textit{depth} lower bounds,
+which are weaker than size lower bounds, since the latter directly imply the former.
+However, there exists theorems that give a converse, 
+but the depth is reduced by a constant factor
+that depend on the type of formula.
+This follows from work of Spira~\cite{spira1971time}, Brent~\cite{brent1974parallel},
+and more recently Bonet and Buss~\cite{bonet1994size}.
+For NAND formulas, the best known theorems have constants that are greater than $2$,
+therefore using them does not improve over the naive $2\cos \pi/7$
+that follow from TM lower bounds.
+However, for most families of formulas, the constants in the best theorems
+are not known to be tight\footnote{See Sergeev~\cite{sergeev2019relation} (in russian) for a recent exposition 
+best upper and lower bounds known on the constants of multiple classes of formulas.}, 
+therefore, it might be possible to improve them
+and use our result to prove nontrivial size lower bounds,
+and maybe super-cubic size lower bounds. 
+
 The lower bounds given in this work are against a very restricted
 type of formulas (NAND formulas, or equivalently alternating OR/AND formulas).
 An open problem is to lift these lower bounds to other computational bases,
@@ -791,6 +847,7 @@ while keeping an alternating structure.
 For example: odd-numbered layers are ANDs and ORs mixed,
 even-numbered layers are XORs and EQs mixed.
 
+
 We can also relax the structure of the formulas: 
 instead of alternating layers, we can only ask
 that at least one layer in every group of $k$ layers
@@ -808,22 +865,30 @@ but against more expressive formulas.
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Program to find optimal parameters}\label{app:ilp}
 
-\subsection{Overview of the approach}
-Improves over Williams (cite): no need to enumerate proof annotations.
 
-Therein, Williams enumerates all possible proof skeletons of length $k$,
+In this section, we describe how we extend and improve 
+the approach of Williams~\cite{williams2006inductive, williams2007time} 
+to programmatically find the proof annotations of a given $c$ that yield a contradiction
+for the largest possible $c$.
+
+\subsection{Overview of the approach}
+We call a \textit{proof skeleton} a proof annotation stripped of its speedup parameters.
+For example, the proof skeleton of the annotation $1_200$ is $100$.
+
+In his work, Williams enumerates all possible proof skeletons of length $k$,
 and tries to find the best set of parameters for each of them, using a linear program.
 In this work, we propose a different approach, that proves to be more efficient in practice:
-we use an Integer Linear program whose solution is
-an optimal proof of length $k$
-along with its parameters.
+we use an Integer Linear Program (ILP) whose solution is
+an optimal proof annotation of length $k$.
 
 More precisely, we give an ILP $P_{c,k}$ which is feasible if and only if
-there exists a proof annotation $p$ of length $k$,\footnote{Our program takes as input a value $k'$ and searches over proofs with $k'$ application of the speedup rule, which implies $k'+1$ slowdowns since every quantifier must be removed to reach a contradiction. Therefore, we have $k = 2k'+1$.} along with parameters $x, r_0$
+there exists a proof annotation $p$ of length $k$,\footnote{Our program takes as input a value $k'$ and searches over proofs with $k'$ application of the speedup rule, which implies $k'+1$ slowdowns since every quantifier must be removed to reach a contradiction. Therefore, we have $k = 2k'+1$.} along with parameters $x, d_0$
 such that $p$ proves a contradiction under the assumption that $\SAT\in\NDL{c}$
-Moreover, its solution encodes $p,q,r_0$.
+starting from the class $\NDL{d_0}$.
+Moreover, its solution encodes $p,q,d_0$.
 By using binary search over $c$, we can quickly get an approximation 
-of $c_k^*$, the largest $c$ such that a proof of length $k$ can reach a contradiction assuming that $\SAT\in\NDL{c}$.
+of $c_k^*$, the largest $c$ such that a proof of length $k$ 
+can reach a contradiction assuming that $\SAT\in\NDL{c}$.
 Repeating the above steps for increasing values of $k$ shows that the sequence $(c_k^*)_{k}$
 seems to converge to some value $c_\infty^* > 3.5$ (see Table~\ref{table:ilp_res}).
 
@@ -833,33 +898,34 @@ seems to converge to some value $c_\infty^* > 3.5$ (see Table~\ref{table:ilp_res
 	\hline
 	$k$ & $c_k^*$ & Skeleton of $p_k^*$ \\ 
 	\hline
-	3 & 2.82812 & \texttt{100} \\
-	7 & 3.20020 & \texttt{1100100} \\
-	11 & 3.32617 & \texttt{11100100100} \\
-	15 & 3.39844 & \texttt{111001010010100} \\
-	19 & 3.44629 & \texttt{1111001001010010100} \\
-	23 & 3.47559 & \texttt{11110010100101001010100} \\
-	27 & 3.49805 & \texttt{111110010010100101001010100} \\
+	3 & 2.82812 & 100 \\
+	7 & 3.20020 & 1100100 \\
+	11 & 3.32617 & 11100100100 \\
+	15 & 3.41797 & 111001001100100 \\
+	19 & 3.46094 & 1111001001001100100 \\
+	23 & 3.49902 & 11110010011001001100100 \\
+	27 & 3.52930 & 111100011000111001001100100 \\
 	\hline
 	\end{tabular}
 	\end{center}
 	\caption{Approximate value of $c_k^*$ and skeleton of $p_k^*$ for some values of $k$.}\label{table:ilp_res}
 \end{table}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Details of the model}
-Given an integer $k \ge 3$ and a real $c$, we define the interger linear program $P_{c,k}$ as follows:
+Given an integer $k \ge 3$ and a real $c$, we define the integer linear program $P_{c,k}$ as follows:
 \[
 \begin{array}{rrcll}
 	(P_{k,c}) &\max& 1&&\\
 	\text{Initial speedup constraints:}&&&&\\
-	&d_1&=&d_0 - 2x_1&\\
+	&d_1&=&d_0 - x_1&\\
 	&a_{1, -1}&=&1&\\
-	&a_{1, -2}&\ge&x_1&\\
+	&a_{1, -2}&\ge&x_1/2&\\
 	&su_1&=&1&\\
 	\text{Speedup constraints:}&&&&\\
-	\forall i \ge 1, su_i = 1\Rightarrow &d_i&=&d_{i-1} - 2x_i&\\
+	\forall i \ge 1, su_i = 1\Rightarrow &d_i&=&d_{i-1} - x_i&\\
 	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, j}&\ge&a_{i-1, j+1}& j = 1,\ldots,k-1\\
-	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, -2}&\ge&x_i&\\
+	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, -2}&\ge&x_i/2&\\
 	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, -1}&=&1&\\
 	\text{Slowdown constraints:}&&&&\\
 	\forall i \ge 1, su_i = 0\Rightarrow &d_i&\ge&c\cdot d_{i-1}/2&\\
@@ -882,17 +948,22 @@ The variables have the following meaning:
 \begin{enumerate}
 	\item $d_i$: verifier is $\NDL{d_i}$ on line $i$,
 	\item $a_{i,k+1-j}$: exponent of the $j$-th-to-last quantifier on line $i$. 
-	We use
-	$a_{i,-j}$ as a shorthand notation for $a_{i,k+1-j}$.
+	We use $a_{i,-j}$ as a shorthand notation for $a_{i,k+1-j}$. 
+	By indexing $a$ relative to the last quantifier instead of the first allows us to simplify
+	the linear program: for example, 
+	we do not need to keep track of the number of quantifiers on the current line. 
 	\item $x_i$: if line $i$ is the result of a speedup, it is a speedup with parameter $x_i$,
 	\item $su_{i}$: 1 if and only if line $i$ results in the application of a speedup, 0 otherwise.
 \end{enumerate}
-The constains of the type ``$su_i = b$ implies $C$'' can be encoded using the so-called ``Big M method''\footnote{See \url{https://en.wikipedia.org/wiki/Big\_M\_method}.}. 
-The constaint $d_k < d_0$ can be approximately encoded as $d_k \le d_0 - \delta$ for some small $\delta > 0$.
+The constraints of the type ``$su_i = b$ implies $C$'' can be encoded using the so-called ``Big M method''\footnote{See \url{https://en.wikipedia.org/wiki/Big\_M\_method}.}. 
+The constraint $d_k < d_0$ can be approximately encoded as $d_k \le d_0 - \delta$ for some small $\delta > 0$.
 
 The proof leads to a contradiction if and only if $d_k < d_0$, 
 that is, if and only if the ILP is feasible.
 Using binary search on $c$, we can quickly find an upper and lower bounds on $c_k^*$.
+
+% TODO : Clean code and put online !
+An implementation of this model (and the search) are available online at \url{https://github.com/GBathie/sat-nand-lbounds}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%

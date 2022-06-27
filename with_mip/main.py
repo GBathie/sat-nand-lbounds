@@ -54,6 +54,7 @@ def run_proof(annotation, params, p0, c):
         else:
             print('Incorrect annotation')
             exit(0)
+    # Sanity check
     print('Correct proof!' if r < p0 else 'Incorrect proof :(')
 
 
