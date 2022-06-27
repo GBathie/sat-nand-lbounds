@@ -73,7 +73,7 @@ def best_param_sparse(proof, c_lb=1.0, c_ub=5.0, tol=0.001, verbose=0):
             elif r_type == '1': # speedup
                 m.addConstr(a[i] >= stack[-1])
                 m.addConstr(a[i] >= x[i]/2)
-                m.addConstr(b[i] >= stack[-1])
+                m.addConstr(b[i] >= 1)
                 m.addConstr(r[i] == r[i-1] - x[i])
                 stack.pop()
                 stack.append(a[i])
