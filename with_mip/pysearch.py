@@ -21,21 +21,20 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
         m.Params.Threads = n_threads
         nl = k+1 # number of lines
         nc = k//2+1+5 # number of columns
-        a = m.addVars(nl, nc, name='a')
+        a = m.addVars(nl, nc, lb=1, name='a')
         x = m.addVars(nl, name='x') # params for speedups
         r = m.addVars(nl, name='r') # runtime
         su = m.addVars(nl, vtype=GRB.BINARY, name='su') # usual speedup
         sd  = m.addVars(nl, vtype=GRB.BINARY, name='sd')  # slowdown
 
         """
-        We proceed differently: we put the last quantifier of line i in a[i, -1], 
+        We proceed differently: 
+        we put the last quantifier of line i in a[i, -1], 
         2nd to last in a[i, -2], etc.
         """
 
         # Apply the first speedup
         m.addConstr(a[1, nc-2] >=  x[1]/2) 
-        m.addConstr(a[1, nc-2] >=  1) 
-        m.addConstr(a[1, nc-1] >=  1)
         m.addConstr(r[1] ==  r[0] - x[1])
         m.addConstr(su[1] == 1)
         
@@ -46,7 +45,6 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
         m.addConstrs((su[i] == 1) >> (a[i, j] >= a[i-1, j+1]) for j in range(nc-1) for i in range(2, nl))
         #   Set speedup arg "max(x/2, a)"
         m.addConstrs((su[i] == 1) >> (a[i, nc-2] >= x[i]/2)       for i in range(2, nl)) 
-        m.addConstrs((su[i] == 1) >> (a[i, nc-1] >= a[i-1, nc-1]) for i in range(2, nl)) 
         #   Set runtime
         m.addConstrs((su[i] == 1) >> (r[i] == r[i-1] - x[i]) for j in range(1, nc) for i in range(2, nl)) 
  
@@ -56,16 +54,14 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
         #       in order for the proof to be "well-typed".
         #   Copy l-1 quantifiers
         m.addConstrs((sd[i] == 1) >> (a[i, j] == a[i-1, j-1]) for j in range(1, nc) for i in range(2, nl))
-        # m.addConstrs((sd[i] == 1) >> (x[i] == r[i-1]/2) for i in range(2, nl)) # Best SD param is runtime/2 ?
+
         #   Set runtime. We wrap this into a function.
         def set_c_constraints(c):
             cx = []
             # Slowdown
-            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*(r[i-1] - x[i]))  for i in range(2, nl))
+            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*r[i-1]/2)  for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
             tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*a[i-1, nc-1]) for i in range(2, nl))
-            cx += [tmp[x] for x in tmp]
-            tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*x[i]) for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
             tmp = m.addConstrs((sd[i] == 1) >> (r[i] >= c*a[i-1, nc-2]) for i in range(2, nl))
             cx += [tmp[x] for x in tmp]
@@ -104,7 +100,7 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
                     best_r = r[0].x
                     if verbose > 0:
                         print(f'Value {mid} feasible')
-                        # pretty_print(t, a, q, h, x, mid, k, nl, nc, verbose)
+                        pretty_print(a, nl, nc)
             else:
                 c_ub = mid
                 if verbose > 0:
@@ -116,3 +112,7 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
 
     except AttributeError:
         print('Encountered an attribute error')
+
+def pretty_print(a, nl, nc):
+    for i in range(nl):
+        print(' '.join(f'(Q n^{a[i,j].x})' for j in range(nc)))

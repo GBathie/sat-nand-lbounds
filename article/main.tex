@@ -4,14 +4,15 @@
 \usepackage[T1]{fontenc}
 \usepackage[USenglish]{babel}
 \usepackage[margin=3cm]{geometry}
+\usepackage{hyperref}
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
 \usepackage{todonotes}
 \usepackage{enumitem}
-\usepackage{algorithm}
-\usepackage[noend]{algpseudocode}
+% \usepackage{algorithm}
+% \usepackage[noend]{algpseudocode}
 
 
 \theoremstyle{plain}
@@ -490,7 +491,7 @@ We have the following:
 	\begin{flalign*}
 	\ldots (\forall n^{a}) (\exists n^b) \NDL{d} 
 		&\subseteq \ldots (\forall n^{a}) (\exists n^b) \NTIME[n^{d/2}]\\	
-		&\subseteq \ldots (\forall n^{a}) \NTIME[n^{\max(d/2, d)}]	
+		&\subseteq \ldots (\forall n^{a}) \NTIME[n^{\max(d/2, b)}]	
 	\end{flalign*}
 
 	Now, consider the $\NTIME[n^{\max(d/2, b)}]$ language $L$
@@ -846,13 +847,52 @@ seems to converge to some value $c_\infty^* > 3.5$ (see Table~\ref{table:ilp_res
 \end{table}
 
 \subsection{Details of the model}
-Given an integer $k$ and a real $c$, we define the following interger linear program $P_{c,k}$ as follows:
-\begin{equation}
-	todo
-\end{equation}
-\todoh{describe model}
-\todoh{link to code?}
+Given an integer $k \ge 3$ and a real $c$, we define the interger linear program $P_{c,k}$ as follows:
+\[
+\begin{array}{rrcll}
+	(P_{k,c}) &\max& 1&&\\
+	\text{Initial speedup constraints:}&&&&\\
+	&d_1&=&d_0 - 2x_1&\\
+	&a_{1, -1}&=&1&\\
+	&a_{1, -2}&\ge&x_1&\\
+	&su_1&=&1&\\
+	\text{Speedup constraints:}&&&&\\
+	\forall i \ge 1, su_i = 1\Rightarrow &d_i&=&d_{i-1} - 2x_i&\\
+	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, j}&\ge&a_{i-1, j+1}& j = 1,\ldots,k-1\\
+	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, -2}&\ge&x_i&\\
+	\forall i \ge 1, su_i = 1\Rightarrow &a_{i, -1}&=&1&\\
+	\text{Slowdown constraints:}&&&&\\
+	\forall i \ge 1, su_i = 0\Rightarrow &d_i&\ge&c\cdot d_{i-1}/2&\\
+	\forall i \ge 1, su_i = 0\Rightarrow &d_i&\ge&c\cdot a_{i-1, -1}&\\
+	\forall i \ge 1, su_i = 0\Rightarrow &d_i&\ge&c\cdot a_{i-1, -2}&\\
+	\forall i \ge 1, su_i = 0\Rightarrow &a_{i, j}&=&a_{i-1, j-1}& j = 2,\ldots,k\\
+	\text{Well-formed proof constraints:}&&&&\\
+	\forall i \ge 1, & 2\sum_{t=1}^i su_{t} &\ge& i&\\ 
+					 & 2\sum_{i=1}^k su_{i} &=& k - 1&\\ 
+	\text{Require contradiction:}&&&&\\
+	& d_k &<&d_0&\\
+	\text{Variables:}&&&&\\
+	&d_i &\in& [0,+\infty), &i =0,\ldots, k\\
+	&a_{i,j} &\in& [1,+\infty), &i,j =1,\ldots, k\\
+	&x_i &\in& [0,+\infty), &i =1,\ldots, k\\
+	&su_{i} &\in& \{0,1\}, &i =1,\ldots, k
+\end{array}
+\]
+The variables have the following meaning:
+\begin{enumerate}
+	\item $d_i$: verifier is $\NDL{d_i}$ on line $i$,
+	\item $a_{i,k+1-j}$: exponent of the $j$-th-to-last quantifier on line $i$. 
+	We use
+	$a_{i,-j}$ as a shorthand notation for $a_{i,k+1-j}$.
+	\item $x_i$: if line $i$ is the result of a speedup, it is a speedup with parameter $x_i$,
+	\item $su_{i}$: 1 if and only if line $i$ results in the application of a speedup, 0 otherwise.
+\end{enumerate}
+The constains of the type ``$su_i = b$ implies $C$'' can be encoded using the so-called ``Big M method''\footnote{See \url{https://en.wikipedia.org/wiki/Big\_M\_method}.}. 
+The constaint $d_k < d_0$ can be approximately encoded as $d_k \le d_0 - \delta$ for some small $\delta > 0$.
 
+The proof leads to a contradiction if and only if $d_k < d_0$, 
+that is, if and only if the ILP is feasible.
+Using binary search on $c$, we can quickly find an upper and lower bounds on $c_k^*$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
