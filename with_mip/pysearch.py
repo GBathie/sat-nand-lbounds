@@ -100,7 +100,7 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
                     best_r = r[0].x
                     if verbose > 0:
                         print(f'Value {mid} feasible')
-                        pretty_print(a, nl, nc)
+                        # debug(a, nl, nc)
             else:
                 c_ub = mid
                 if verbose > 0:
@@ -113,6 +113,6 @@ def best_proof_sparse(k, c_lb=1.0, c_ub=5.0, tol=0.001, n_threads=10, verbose=0)
     except AttributeError:
         print('Encountered an attribute error')
 
-def pretty_print(a, nl, nc):
+def debug(a, nl, nc):
     for i in range(nl):
         print(' '.join(f'(Q n^{a[i,j].x})' for j in range(nc)))

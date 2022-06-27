@@ -37,7 +37,7 @@ def run_proof(annotation, params, p0, c):
     print()
     print(f'Nand-depth[{p0} log n]')
     x = params[1]
-    q = [x/2, 1]
+    q = [max(x/2, 1), 1]
     r = p0 - x
     print_anno(q, r, x)
     for i in range(1, k):
@@ -48,13 +48,9 @@ def run_proof(annotation, params, p0, c):
             r = r - x
             print_anno(q, r, x)
         elif annotation[i] == '0':
-            r = c*max(r/2, q[-1], q[-2]) if len(q) > 1 else c*max(r/2, q[-1], 1)
+            r = c*max(r/2, q[-1], q[-2], 1) if len(q) > 1 else c*max(r/2, q[-1], 1)
             q.pop()
             print_anno(q, r, None)
-        elif annotation[i] == '2':
-            r = c*max(r, q[-1], q[-2]) if len(q) > 1 else c*max(r, q[-1])
-            q.pop()
-            print_anno(q, r)
         else:
             print('Incorrect annotation')
             exit(0)
@@ -65,11 +61,14 @@ from time import time
 
 def time_generated_search(size, f, print_proof=False, **kwargs):
     t = time()
-    best_c, best_proof, best_x, best_r = 0, '', [], 0
+    best_c, best_proof, best_x, best_r = 0, [], [], 0
     for p in enumerate_annotations(size):
         c, proof, x, r = f(p, **kwargs)
         if c > best_c:
-            best_c, best_proof, best_x, best_r = c, proof, x, r
+            best_c, best_proof, best_x, best_r = c, [proof], x, r
+        elif c == best_c:
+            best_proof.append(proof)
+            print(c, best_proof)
     t2 = time()
     print(f'Best c found: {best_c:.5f} in {(t2-t):.5f}s for annotation {best_proof}')
     if print_proof:
